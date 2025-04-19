@@ -15,9 +15,8 @@ import pytz
 import time
 from rouge_score import rouge_scorer
 
-# --- Insert this at the very beginning of your script ---
 def set_background(image_url):
-    st.markdown(
+      st.markdown(  # <-- Line 20
         f"""
         <style>
         .stApp {{
@@ -28,7 +27,6 @@ def set_background(image_url):
         """,
         unsafe_allow_html=True
     )
-
 
 background_image_url = "https://murf.ai/resources/media/posts/90/ai-with-voice-new.png"
 set_background(background_image_url)
