@@ -57,13 +57,13 @@ st.markdown("""
 # Botify Title
 st.markdown('<h1 class="botify-title">Botify</h1>', unsafe_allow_html=True)
 
-# Set up API Key from secrets
-api_key = st.secrets["groq_api"]["api_key"]
+# Set up API Key directly
+api_key = "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"  # Replace with your actual API key
 
 # Base URL and headers for Groq API
 base_url = "https://api.groq.com/openai/v1"
 headers = {
-    "Authorization": f"Bearer {api_key}",  # Use api_key here, not groqapi_key
+    "Authorization": f"Bearer {api_key}",  # Use api_key here
     "Content-Type": "application/json"
 }
 
