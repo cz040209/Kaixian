@@ -16,17 +16,17 @@ import time
 from rouge_score import rouge_scorer
 
 def set_background(image_url):
-      st.markdown(  # <-- Line 20
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("{image_url}");
-            background-size: cover;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("{image_url}");
+            background-size: cover;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 background_image_url = "https://murf.ai/resources/media/posts/90/ai-with-voice-new.png"
 set_background(background_image_url)
@@ -40,10 +40,10 @@ st.markdown("""
             font-family: 'Arial', sans-serif;
         }
         .css-1v0m2ju {
-            background-color: #282c34;  /* Slightly lighter background */
+            background-color: #282c34;
         }
         .css-13ya6yb {
-            background-color: #61dafb;  /* Button color */
+            background-color: #61dafb;
             border-radius: 5px;
             padding: 10px 20px;
             color: white;
@@ -61,7 +61,7 @@ st.markdown("""
         }
         .Emøtica-title {
             font-family: 'Arial', sans-serif;
-            font-size: 60px;  /* Increased font size */
+            font-size: 60px;
             font-weight: bold;
             color: #61dafb;
             text-align: center;
@@ -75,37 +75,35 @@ st.markdown("""
 st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
 
 # Set up API Key directly
-api_key = "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"  # Replace with your actual API key
+api_key = "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"
 
 # Base URL and headers for Groq API
 base_url = "https://api.groq.com/openai/v1"
 headers = {
-    "Authorization": f"Bearer {api_key}",  # Use api_key here
+    "Authorization": f"Bearer {api_key}",
     "Content-Type": "application/json"
 }
 
-# Available models, including the two new Sambanova models
+# Available models
 available_models = {
     "Mixtral 8x7b": "mixtral-8x7b-32768",
     "Llama-3.1-8b-instant": "llama-3.1-8b-instant",
     "gemma2-9b-it": "gemma2-9b-it",
 }
 
-
 # Custom CSS to style the chat input and button
 st.markdown("""
     <style>
-        /* Custom CSS for the call button to make it circular */
         button[data-testid="stButton"][key^="call_button"] {
-            border-radius: 50%; /* Make it circular */
-            width: 40px; /* Adjust as needed */
-            height: 40px; /* Adjust as needed */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 0 !important; /* Remove default padding */
-            font-size: 20px; /* Adjust icon size */
-            margin: 0 5px; /* Add some spacing between buttons */
+            padding: 0 !important;
+            font-size: 20px;
+            margin: 0 5px;
         }
         button[data-testid="stButton"][key^="call_button"] > div {
             display: flex;
@@ -116,7 +114,6 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
-
 
 
 # Function to Translate Text Using the Selected Model
