@@ -76,6 +76,47 @@ available_models = {
 }
 
 
+# Custom CSS to style the chat input and button
+st.markdown(
+    """
+    <style>
+    .stChatInputContainer {
+        display: flex;
+        flex-direction: row; /* Align items horizontally */
+        align-items: center; /* Vertically align items in the center */
+    }
+    .stChatInputContainer > div:first-child {
+        flex-grow: 1; /* Allow the text input to take up remaining space */
+        margin-right: 10px; /* Add some spacing between input and button */
+    }
+    .call-button {
+        background-color: #61dafb; /* Button color */
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    .call-button:hover {
+        opacity: 0.8;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Create a container for the chat input and button
+chat_container = st.container()
+
+with chat_container:
+    col1, col2 = st.columns([5, 1])  # Adjust column widths as needed
+    with col1:
+        user_input = st.chat_input("Ask a question:")
+    with col2:
+        if st.button(':telephone_receiver:', key="call_button", help="Initiate a call"):
+            user_input = "Initiate a call"  # Or any specific call-related input
+
 # Function to Translate Text Using the Selected Model
 def translate_text(text, target_language, model_id):
     url = f"{base_url}/chat/completions"
