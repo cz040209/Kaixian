@@ -1,4 +1,3 @@
-# original no phone call
 from streamlit_chat import message
 import requests
 import streamlit as st
