@@ -95,7 +95,7 @@ set_background(background_image_url)
 
 
 # Custom CSS for a more premium look
-st.markdown(""
+st.markdown("""
     <style>
         .css-1d391kg {
             background-color: rgba(28, 31, 36, 0.8); /* Dark background with some transparency */
@@ -132,7 +132,7 @@ st.markdown(""
             margin-bottom: 30px;
         }
     </style>
-"", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 
 
