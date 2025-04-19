@@ -17,7 +17,7 @@ from rouge_score import rouge_scorer
 
 # --- Insert this at the very beginning of your script ---
 def set_background(image_url):
-    st.markdown(
+    st.markdown( 
         f"""
         <style>
         .stApp {{
