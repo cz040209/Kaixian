@@ -76,11 +76,20 @@ available_models = {
 }
 
 
-# Custom CSS to style the chat input and button
+# Custom CSS for a more premium look and bottom placement of call icons
 st.markdown("""
     <style>
-        /* Custom CSS for the call button to make it circular */
-        button[data-testid="stButton"][key="call_button"] {
+        /* ... other CSS ... */
+        /* Custom CSS for the call buttons */
+        .call-button-container {
+            position: fixed;
+            bottom: 20px; /* Adjust as needed */
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px; /* Adjust spacing between icons */
+        }
+        .call-button {
             border-radius: 50%; /* Make it circular */
             width: 40px; /* Adjust as needed */
             height: 40px; /* Adjust as needed */
@@ -90,7 +99,7 @@ st.markdown("""
             padding: 0 !important; /* Remove default padding */
             font-size: 20px; /* Adjust icon size */
         }
-        button[data-testid="stButton"][key="call_button"] > div {
+        .call-button > div {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -99,7 +108,6 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
-
 
 
 # Function to Translate Text Using the Selected Model
@@ -155,14 +163,16 @@ user_input = None
 # Create a container for the call icons at the bottom (AFTER the selectbox)
 call_icon_container = st.container()
 
-with call_icon_container:
-    col1, col2 = st.columns([1, 1]) # Adjust ratios as needed
-    with col1:
-        if st.button(':telephone_receiver:', key="call_button_voice", help="Initiate a Voice Call"):
-            user_input = "Initiate a Voice Call"
-    with col2:
-        if st.button(':video_camera:', key="call_button_video", help="Initiate a Video Call"):
-            user_input = "Initiate a Video Call"
+# Container for the call icons at the bottom
+st.markdown('<div class="call-button-container">', unsafe_allow_html=True)
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button(':telephone_receiver:', key="call_button_voice", help="Initiate a Voice Call", class_="call-button"):
+        user_input = "Initiate a Voice Call"
+with col2:
+    if st.button(':video_camera:', key="call_button_video", help="Initiate a Video Call", class_="call-button"):
+        user_input = "Initiate a Video Call"
+st.markdown('</div>', unsafe_allow_html=True)
 
 if user_input:
     # Set the timezone to Malaysia for the timestamp
