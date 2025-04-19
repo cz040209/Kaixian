@@ -44,7 +44,7 @@ st.markdown("""
             color: #61dafb;
             font-size: 20px;
         }
-        .botify-title {
+        .Emøtica-title {
             font-family: 'Arial', sans-serif;
             font-size: 48px;
             font-weight: bold;
@@ -56,8 +56,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Botify Title
-st.markdown('<h1 class="botify-title">Botify</h1>', unsafe_allow_html=True)
+# Emøtica Title
+st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
 
 # Set up API Key directly
 api_key = "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"  # Replace with your actual API key
