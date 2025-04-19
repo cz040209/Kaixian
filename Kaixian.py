@@ -165,9 +165,6 @@ for interaction in st.session_state.history:
 
 
 
-# Get user input using the chat-style input field
-user_input = st.chat_input("Ask a question:")
-
 if user_input:
     # Set the timezone to Malaysia for the timestamp
     malaysia_tz = pytz.timezone("Asia/Kuala_Lumpur")
