@@ -75,7 +75,6 @@ available_models = {
     "gemma2-9b-it": "gemma2-9b-it",
 }
 
-
 # Custom CSS for a more premium look and bottom placement of call icons
 st.markdown("""
     <style>
@@ -88,6 +87,7 @@ st.markdown("""
             transform: translateX(-50%);
             display: flex;
             gap: 10px; /* Adjust spacing between icons */
+            z-index: 999; /* Ensure it's on top of other elements */
         }
         .call-button {
             border-radius: 50%; /* Make it circular */
@@ -98,6 +98,10 @@ st.markdown("""
             align-items: center;
             padding: 0 !important; /* Remove default padding */
             font-size: 20px; /* Adjust icon size */
+            border: none; /* Remove default button border */
+            background-color: #61dafb; /* Match button color */
+            color: white;
+            cursor: pointer;
         }
         .call-button > div {
             display: flex;
