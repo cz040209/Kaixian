@@ -357,7 +357,6 @@ if st.sidebar.button("Start a New Chat"):
 
 # Add functionality to save the entire conversation
 def append_to_history(question, response):
-    """Append a question and response to the current conversation history."""
     st.session_state.history.append({
         "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "question": question,
