@@ -15,17 +15,20 @@ import pytz
 import time
 from rouge_score import rouge_scorer
 
+background_image_url = "YOUR_IMAGE_URL_HERE"
+set_background(background_image_url)
+# --- End of background image insertion ---
 
 # Custom CSS for a more premium look
-st.markdown("""
+st.markdown(""
     <style>
         .css-1d391kg {
-            background-color: #1c1f24;  /* Dark background */
+            background-color: rgba(28, 31, 36, 0.8); /* Dark background with some transparency */
             color: white;
             font-family: 'Arial', sans-serif;
         }
         .css-1v0m2ju {
-            background-color: #282c34;  /* Slightly lighter background */
+            background-color: rgba(40, 44, 52, 0.8); /* Slightly lighter background with transparency */
         }
         .css-13ya6yb {
             background-color: #61dafb;  /* Button color */
@@ -54,7 +57,8 @@ st.markdown("""
             margin-bottom: 30px;
         }
     </style>
-""", unsafe_allow_html=True)
+"", unsafe_allow_html=True)
+
 
 # Emøtica Title
 st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
@@ -78,7 +82,7 @@ available_models = {
 
 
 # Custom CSS to style the chat input and button
-st.markdown("""
+st.markdown(""
     <style>
         /* Custom CSS for the call button to make it circular */
         button[data-testid="stButton"][key^="call_button"] {
@@ -100,7 +104,7 @@ st.markdown("""
             height: 100%;
         }
     </style>
-""", unsafe_allow_html=True)
+"", unsafe_allow_html=True)
 
 
 
