@@ -80,7 +80,7 @@ available_models = {
 st.markdown("""
     <style>
         /* Custom CSS for the call button to make it circular */
-        button[data-testid="stButton"][key="call_button"] {
+        button[data-testid="stButton"][key^="call_button"] {
             border-radius: 50%; /* Make it circular */
             width: 40px; /* Adjust as needed */
             height: 40px; /* Adjust as needed */
@@ -89,8 +89,9 @@ st.markdown("""
             align-items: center;
             padding: 0 !important; /* Remove default padding */
             font-size: 20px; /* Adjust icon size */
+            margin: 0 5px; /* Add some spacing between buttons */
         }
-        button[data-testid="stButton"][key="call_button"] > div {
+        button[data-testid="stButton"][key^="call_button"] > div {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -153,15 +154,13 @@ call_type = st.selectbox("Select Call Type", ["Voice Call", "Video Call"])
 user_input = None
 
 # Create a container for the call icons at the bottom (AFTER the selectbox)
-call_icon_container = st.container()
-
 with call_icon_container:
     col1, col2 = st.columns([1, 1]) # Adjust ratios as needed
     with col1:
         if st.button(':telephone_receiver:', key="call_button_voice", help="Initiate a Voice Call"):
             user_input = "Initiate a Voice Call"
     with col2:
-        if st.button(':video_camera:', key="call_button_video", help="Initiate a Video Call"):
+        if st.button(':movie_camera:', key="call_button_video", help="Initiate a Video Call"):
             user_input = "Initiate a Video Call"
 
 if user_input:
