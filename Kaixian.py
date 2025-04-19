@@ -163,8 +163,8 @@ languages = [
     "Punjabi", "Tamil", "Telugu", "Swahili", "Amharic"
 ]
         
-# Step 4: Handle Audio Upload
-elif input_method == "Upload Audio":
+# Step 4: Handle Input Based on Selection
+if input_method == "Upload Audio":
     uploaded_audio = st.file_uploader("Upload an audio file", type=["mp3", "wav"])
 
     if uploaded_audio:
