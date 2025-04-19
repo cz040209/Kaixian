@@ -491,6 +491,8 @@ def ask_question(question):
         except requests.exceptions.RequestException as e:
             st.write(f"An error occurred: {e}")
 
+# Initialize user_input outside the container
+user_input = None
 
 # Create a container for the chat input and button
 chat_container = st.container()
