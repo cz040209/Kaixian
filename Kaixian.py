@@ -96,9 +96,8 @@ available_models = {
 
 
 # Custom CSS to style the chat input and button
-st.markdown(""
+st.markdown("""
     <style>
-        /* Custom CSS for the call button to make it circular */
         button[data-testid="stButton"][key^="call_button"] {
             border-radius: 50%; /* Make it circular */
             width: 40px; /* Adjust as needed */
@@ -118,7 +117,7 @@ st.markdown(""
             height: 100%;
         }
     </style>
-"", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 
 
