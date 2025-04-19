@@ -154,7 +154,22 @@ for interaction in st.session_state.history:
     # Display the assistant's response with a "Thinking..." placeholder if no response yet
     st.chat_message("assistant").write(interaction["response"] or "Thinking...")
 
+# Option to select call type
+call_type = st.selectbox("Select Call Type", ["Voice Call", "Video Call"])
 
+# Initialize user_input outside the container BEFORE it's used
+user_input = None
+
+# Create a container for the chat input and button and move it to the end
+chat_container = st.container()
+
+with chat_container:
+    col1, col2 = st.columns([5, 1])  # Adjust column widths as needed
+    with col1:
+        user_input = st.chat_input("Ask a question:")
+    with col2:
+        if st.button(':telephone_receiver:', key="call_button", help="Initiate a call"):
+            user_input = f"Initiate a {call_type}"  # Define the user input based on selection
 
 if user_input:
     # Set the timezone to Malaysia for the timestamp
@@ -490,17 +505,3 @@ def ask_question(question):
                 st.write(f"Error {response.status_code}: {response.text}")
         except requests.exceptions.RequestException as e:
             st.write(f"An error occurred: {e}")
-
-# Initialize user_input outside the container
-user_input = None
-
-# Create a container for the chat input and button
-chat_container = st.container()
-
-with chat_container:
-    col1, col2 = st.columns([5, 1])  # Adjust column widths as needed
-    with col1:
-        user_input = st.chat_input("Ask a question:")
-    with col2:
-        if st.button(':telephone_receiver:', key="call_button", help="Initiate a call"):
-            user_input = "Initiate a call"  # Or any specific call-related input
