@@ -46,7 +46,7 @@ st.markdown("""
         }
         .Emøtica-title {
             font-family: 'Arial', sans-serif;
-            font-size: 48px;
+            font-size: 60px;  /* Increased font size */
             font-weight: bold;
             color: #61dafb;
             text-align: center;
