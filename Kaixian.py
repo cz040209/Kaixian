@@ -4,7 +4,6 @@ import PyPDF2
 from datetime import datetime
 from gtts import gTTS  # Import gtts for text-to-speech
 import os
-from transformers import BlipProcessor, BlipForConditionalGeneration
 import torch
 from PIL import Image
 import json
@@ -14,11 +13,6 @@ import pytz
 import time
 from rouge_score import rouge_scorer
 
-
-# Hugging Face BLIP-2 Setup
-hf_token = "hf_rLRfVDnchDCuuaBFeIKTAbrptaNcsHUNM"
-blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-large", token=hf_token)
-blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large", token=hf_token)
 
 # Custom CSS for a more premium look
 st.markdown("""
@@ -201,19 +195,6 @@ def transcribe_audio(file):
         st.error(f"Error during transcription: {str(e)}")
         return None
 
-# Step 2: Function to Extract Text from Image using BLIP-2
-def extract_text_from_image(image_file):
-    # Open image from uploaded file
-    image = Image.open(image_file)
-
-    # Preprocess the image for the BLIP-2 model
-    inputs = blip_processor(images=image, return_tensors="pt")
-
-    # Generate the caption (text) for the image
-    out = blip_model.generate(**inputs)
-    caption = blip_processor.decode(out[0], skip_special_tokens=True)
-
-    return caption
 
 # Input Method Selection
 input_method = st.selectbox("Select Input Method", ["Upload PDF", "Upload Audio", "Upload Image"])
@@ -295,28 +276,6 @@ if input_method == "Upload PDF":
             st.write(f"Translated Summary in {selected_language}:")
             st.write(translated_summary)
 
-# Step 3: Handle Image Upload
-elif input_method == "Upload Image":
-    uploaded_image = st.file_uploader("Upload an image file", type=["jpg", "png"])
-    
-    if uploaded_image:
-        st.write("Image uploaded. Extracting text using BLIP-2...")
-        try:
-            # Extract text using BLIP-2
-            image_text = extract_text_from_image(uploaded_image)
-            st.success("Text extracted successfully!")
-
-            # Add the title "The image describes:" before the extracted text
-            st.markdown("### The image describes:")
-            st.markdown(f"<div style='font-size: 14px;'>{image_text}</div>", unsafe_allow_html=True)
-
-            content = image_text  # Set the extracted text as content for further processing
-        except Exception as e:
-            st.error(f"Error extracting text from image: {e}")
-
-        # Model selection for Q&A
-        selected_model_name = st.selectbox("Choose a model:", list(available_models.keys()), key="model_selection")
-        selected_model_id = available_models.get(selected_model_name)
 
         
 # Step 4: Handle Audio Upload
