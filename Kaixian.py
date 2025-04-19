@@ -106,16 +106,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Create a container for the chat input and button
-chat_container = st.container()
 
-with chat_container:
-    col1, col2 = st.columns([5, 1])  # Adjust column widths as needed
-    with col1:
-        user_input = st.chat_input("Ask a question:")
-    with col2:
-        if st.button(':telephone_receiver:', key="call_button", help="Initiate a call"):
-            user_input = "Initiate a call"  # Or any specific call-related input
 
 # Function to Translate Text Using the Selected Model
 def translate_text(text, target_language, model_id):
@@ -499,3 +490,15 @@ def ask_question(question):
                 st.write(f"Error {response.status_code}: {response.text}")
         except requests.exceptions.RequestException as e:
             st.write(f"An error occurred: {e}")
+
+
+# Create a container for the chat input and button
+chat_container = st.container()
+
+with chat_container:
+    col1, col2 = st.columns([5, 1])  # Adjust column widths as needed
+    with col1:
+        user_input = st.chat_input("Ask a question:")
+    with col2:
+        if st.button(':telephone_receiver:', key="call_button", help="Initiate a call"):
+            user_input = "Initiate a call"  # Or any specific call-related input
