@@ -77,34 +77,28 @@ available_models = {
 
 
 # Custom CSS to style the chat input and button
-st.markdown(
-    """
+st.markdown("""
     <style>
-    .stChatInputContainer {
-        display: flex;
-        flex-direction: row; /* Align items horizontally */
-        align-items: center; /* Vertically align items in the center */
-    }
-    .stChatInputContainer > div:first-child {
-        flex-grow: 1; /* Allow the text input to take up remaining space */
-        margin-right: 10px; /* Add some spacing between input and button */
-    }
-    .call-button {
-        background-color: #61dafb; /* Button color */
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-    }
-    .call-button:hover {
-        opacity: 0.8;
-    }
+        /* Custom CSS for the call button to make it circular */
+        button[data-testid="stButton"][key="call_button"] {
+            border-radius: 50%; /* Make it circular */
+            width: 40px; /* Adjust as needed */
+            height: 40px; /* Adjust as needed */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 !important; /* Remove default padding */
+            font-size: 20px; /* Adjust icon size */
+        }
+        button[data-testid="stButton"][key="call_button"] > div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
     </style>
-    """,
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
 
 
