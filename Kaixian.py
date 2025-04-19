@@ -341,9 +341,6 @@ def append_to_history(question, response):
     })
 
 
-# Option to select call type
-call_type = st.selectbox("Select Call Type", ["Voice Call", "Video Call"])
-
 # Button for initiating the call
 if st.button(f':telephone_receiver: Start {call_type}'):
     user_input = f"Initiate a {call_type}"  # Define the user input based on selection
