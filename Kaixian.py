@@ -15,26 +15,26 @@ import pytz
 import time
 from rouge_score import rouge_scorer
 
-    
-background_image_url = "https://murf.ai/resources/media/posts/90/ai-with-voice-new.png"
-set_background(background_image_url)
-
 # --- Insert this at the very beginning of your script ---
 def set_background(image_url):
     st.markdown(
-        f"""
+        f""
         <style>
         .stApp {{
             background-image: url("{image_url}");
             background-size: cover;
         }}
         </style>
-        """,
+        "",
         unsafe_allow_html=True
     )
 
+    
+background_image_url = "https://murf.ai/resources/media/posts/90/ai-with-voice-new.png"
+set_background(background_image_url)
+
 # Custom CSS for a more premium look
-st.markdown("""
+st.markdown(""
     <style>
         .css-1d391kg {
             background-color: rgba(28, 31, 36, 0.8); /* Dark background with some transparency */
@@ -71,7 +71,7 @@ st.markdown("""
             margin-bottom: 30px;
         }
     </style>
-""", unsafe_allow_html=True)
+"", unsafe_allow_html=True)
 
 
 # Emøtica Title
@@ -96,7 +96,7 @@ available_models = {
 
 
 # Custom CSS to style the chat input and button
-st.markdown("""
+st.markdown(""
     <style>
         /* Custom CSS for the call button to make it circular */
         button[data-testid="stButton"][key^="call_button"] {
@@ -118,7 +118,7 @@ st.markdown("""
             height: 100%;
         }
     </style>
-""", unsafe_allow_html=True)
+"", unsafe_allow_html=True)
 
 
 
