@@ -101,51 +101,6 @@ def translate_text(text, target_language, model_id):
     except requests.exceptions.RequestException as e:
         return f"An error occurred during translation: {e}"
 
-# Updated function to transcribe audio using the Groq Whisper API
-def transcribe_audio(file):
-    whisper_api_key = st.secrets["whisper"]["WHISPER_API_KEY"]  # Access Whisper API key
-    url = "https://api.groq.com/openai/v1/audio/transcriptions"  # Groq transcription endpoint
-
-    # Check file type
-    valid_types = ['flac', 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'ogg', 'opus', 'wav', 'webm']
-    extension = file.name.split('.')[-1].lower()
-    if extension not in valid_types:
-        st.error(f"Invalid file type: {extension}. Supported types: {', '.join(valid_types)}")
-        return None
-
-    # Prepare file buffer with proper extension in the .name attribute
-    audio_data = file.read()  # Use file.read() to handle the uploaded file correctly
-    buffer = BytesIO(audio_data)
-    buffer.name = f"file.{extension}"  # Assigning a valid extension based on the uploaded file
-
-    # Prepare the request payload
-    headers = {"Authorization": f"Bearer {whisper_api_key}"}
-    data = {"model": "whisper-large-v3-turbo", "language": "en"}
-
-    try:
-        # Send the audio file for transcription
-        response = requests.post(
-            url,
-            headers=headers,
-            files={"file": buffer},
-            data=data
-        )
-
-        # Handle response
-        if response.status_code == 200:
-            transcription = response.json()
-            return transcription.get("text", "No transcription text found.")
-        else:
-            st.error(f"Error: {response.status_code} - {response.text}")
-            return None
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error during transcription: {str(e)}")
-        return None
-
-
-# Input Method Selection
-input_method = st.selectbox("Select Input Method", ["Upload Audio"])
-
 
 # Sidebar for interaction history
 if "history" not in st.session_state:
@@ -153,41 +108,6 @@ if "history" not in st.session_state:
 
 # Initialize content variable
 content = ""
-
-# Language selection for translation (only for PDF)
-languages = [
-    "English", "Chinese", "Spanish", "French", "Italian", "Portuguese", "Romanian", 
-    "German", "Dutch", "Swedish", "Danish", "Norwegian", "Russian", 
-    "Polish", "Czech", "Ukrainian", "Serbian", "Japanese", 
-    "Korean", "Hindi", "Bengali", "Arabic", "Hebrew", "Persian", 
-    "Punjabi", "Tamil", "Telugu", "Swahili", "Amharic"
-]
-        
-# Step 4: Handle Input Based on Selection
-if input_method == "Upload Audio":
-    uploaded_audio = st.file_uploader("Upload an audio file", type=["mp3", "wav"])
-
-    if uploaded_audio:
-        st.write("Audio file uploaded. Processing audio...")
-
-        # Transcribe using Groq's Whisper API
-        transcript = transcribe_audio(uploaded_audio)
-        if transcript:
-            st.write("Transcription:")
-            st.write(transcript)
-            content = transcript  # Set the transcription as content
-        else:
-            st.error("Failed to transcribe the audio.")
-    else:
-        st.error("Please upload an audio file to proceed.")
-
-    # Select a model for translation and Q&A
-    selected_model_name = st.selectbox("Choose a model:", list(available_models.keys()), key="audio_model_selection")
-    selected_model_id = available_models.get(selected_model_name)
-
-# Translation of the extracted text to selected language (only if PDF)
-if content and input_method == "Upload PDF":
-    translated_content = translate_text(content, selected_language, selected_model_id)
 
 
 
