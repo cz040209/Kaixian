@@ -1,3 +1,4 @@
+# got phone call
 from streamlit_chat import message
 import requests
 import streamlit as st
@@ -17,93 +18,14 @@ from rouge_score import rouge_scorer
 
 # Custom CSS for a more premium look
 st.markdown("""
-    <style>
-        .css-1d391kg {
-            background-color: rgba(28, 31, 36, 0.8); /* Dark background with some transparency */
-            color: white;
-            font-family: 'Arial', sans-serif;
-        }
-        .css-1v0m2ju {
-            background-color: rgba(40, 44, 52, 0.8); /* Slightly lighter background with transparency */
-        }
-        .css-13ya6yb {
-            background-color: #61dafb;  /* Button color */
-            border-radius: 5px;
-            padding: 10px 20px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .css-10trblm {
-            font-size: 18px;
-            font-weight: bold;
-            color: #282c34;
-        }
-        .css-3t9iqy {
-            color: #61dafb;
-            font-size: 20px;
-        }
-        .Emøtica-title {
-            font-family: 'Arial', sans-serif;
-            font-size: 60px;  /* Increased font size */
-            font-weight: bold;
-            color: #61dafb;
-            text-align: center;
-            margin-top: 50px;
-            margin-bottom: 30px;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# Emøtica Title
-st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
-
-# Set up API Key directly
-api_key = "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"  # Replace with your actual API key
-
-# Base URL and headers for Groq API
-base_url = "https://api.groq.com/openai/v1"
-headers = {
-    "Authorization": f"Bearer {api_key}",  # Use api_key here
-    "Content-Type": "application/json"
-}
-
-# Available models, including the two new Sambanova models
-available_models = {
-    "Mixtral 8x7b": "mixtral-8x7b-32768",
-    "Llama-3.1-8b-instant": "llama-3.1-8b-instant",
-    "gemma2-9b-it": "gemma2-9b-it",
-}
-
-# --- Insert this at the very beginning of your script ---
-def set_background(image_url):
-    st.markdown(
-        f""
-        <style>
-        .stApp {{
-            background-image: url("{image_url}");
-            background-size: cover;
-        }}
-        </style>
-        "",
-        unsafe_allow_html=True
-    )
-
-
-background_image_url = "https://murf.ai/resources/media/posts/90/ai-with-voice-new.png"
-set_background(background_image_url)
-
-
-# Custom CSS for a more premium look
-st.markdown(""
     <style>
         .css-1d391kg {
-            background-color: rgba(28, 31, 36, 0.8); /* Dark background with some transparency */
+            background-color: #1c1f24;  /* Dark background */
             color: white;
             font-family: 'Arial', sans-serif;
         }
         .css-1v0m2ju {
-            background-color: rgba(40, 44, 52, 0.8); /* Slightly lighter background with transparency */
+            background-color: #282c34;  /* Slightly lighter background */
         }
         .css-13ya6yb {
             background-color: #61dafb;  /* Button color */
@@ -132,7 +54,53 @@ st.markdown(""
             margin-bottom: 30px;
         }
     </style>
-"", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
+
+# Emøtica Title
+st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
+
+# Set up API Key directly
+api_key = "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"  # Replace with your actual API key
+
+# Base URL and headers for Groq API
+base_url = "https://api.groq.com/openai/v1"
+headers = {
+    "Authorization": f"Bearer {api_key}",  # Use api_key here
+    "Content-Type": "application/json"
+}
+
+# Available models, including the two new Sambanova models
+available_models = {
+    "Mixtral 8x7b": "mixtral-8x7b-32768",
+    "Llama-3.1-8b-instant": "llama-3.1-8b-instant",
+    "gemma2-9b-it": "gemma2-9b-it",
+}
+
+
+# Custom CSS to style the chat input and button
+st.markdown("""
+    <style>
+        /* Custom CSS for the call button to make it circular */
+        button[data-testid="stButton"][key^="call_button"] {
+            border-radius: 50%; /* Make it circular */
+            width: 40px; /* Adjust as needed */
+            height: 40px; /* Adjust as needed */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 !important; /* Remove default padding */
+            font-size: 20px; /* Adjust icon size */
+            margin: 0 5px; /* Add some spacing between buttons */
+        }
+        button[data-testid="stButton"][key^="call_button"] > div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 
 
@@ -169,6 +137,7 @@ if "history" not in st.session_state:
 content = ""
 
 
+
 # Sidebar for interaction history (should come early)
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -179,6 +148,8 @@ for interaction in st.session_state.history:
     st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
     st.chat_message("assistant").write(interaction["response"] or "Thinking...")
 
+# Option to select call type (define it here)
+call_type = st.selectbox("Select Call Type", ["Voice Call", "Video Call"])
 
 # Initialize user_input outside the container
 user_input = None
@@ -357,6 +328,7 @@ if st.sidebar.button("Start a New Chat"):
 
 # Add functionality to save the entire conversation
 def append_to_history(question, response):
+    """Append a question and response to the current conversation history."""
     st.session_state.history.append({
         "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "question": question,
