@@ -154,6 +154,8 @@ call_type = st.selectbox("Select Call Type", ["Voice Call", "Video Call"])
 user_input = None
 
 # Create a container for the call icons at the bottom (AFTER the selectbox)
+call_icon_container = st.container()  # Move this line up
+
 with call_icon_container:
     col1, col2 = st.columns([1, 1]) # Adjust ratios as needed
     with col1:
