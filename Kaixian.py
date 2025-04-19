@@ -136,34 +136,32 @@ content = ""
 
 
 
-# Step 5: Allow real-time conversation with the chatbot
+# Sidebar for interaction history (should come early)
 if "history" not in st.session_state:
     st.session_state.history = []
+content = ""
 
-# Display the conversation history
+# Display conversation history
 for interaction in st.session_state.history:
-    # Display the timestamp and question from the user
     st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
-    
-    # Display the assistant's response with a "Thinking..." placeholder if no response yet
     st.chat_message("assistant").write(interaction["response"] or "Thinking...")
 
-# Option to select call type
+# Option to select call type (define it here)
 call_type = st.selectbox("Select Call Type", ["Voice Call", "Video Call"])
 
-# Initialize user_input outside the container BEFORE it's used
+# Initialize user_input outside the container
 user_input = None
 
-# Create a container for the chat input and button and move it to the end
+# Create a container for the chat input and button and move it to the end (AFTER the selectbox)
 chat_container = st.container()
 
 with chat_container:
-    col1, col2 = st.columns([5, 1])  # Adjust column widths as needed
+    col1, col2 = st.columns([5, 1])
     with col1:
         user_input = st.chat_input("Ask a question:")
     with col2:
         if st.button(':telephone_receiver:', key="call_button", help="Initiate a call"):
-            user_input = f"Initiate a {call_type}"  # Define the user input based on selection
+            user_input = f"Initiate a {call_type}"
 
 if user_input:
     # Set the timezone to Malaysia for the timestamp
