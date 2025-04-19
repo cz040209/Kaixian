@@ -76,61 +76,6 @@ available_models = {
     "gemma2-9b-it": "gemma2-9b-it",
 }
 
-# Step 1: Function to Extract Text from PDF
-def extract_text_from_pdf(pdf_file):
-    pdf_reader = PyPDF2.PdfReader(pdf_file)
-    extracted_text = ""
-    for page in pdf_reader.pages:
-        extracted_text += page.extract_text()
-    return extracted_text
-
-# Updated summarize_text_with_rouge function (no changes here, just included for clarity)
-def summarize_text_with_rouge(text, model_id, reference_summary=None):
-    # Start the timer to measure summarization time
-    start_time = time.time()
-    
-    url = f"{base_url}/chat/completions"
-    data = {
-        "model": model_id,
-        "messages": [
-            {"role": "system", "content": "You are a helpful assistant. Summarize the following text:"},
-            {"role": "user", "content": text}
-        ],
-        "temperature": 0.7,
-        "max_tokens": 300,
-        "top_p": 0.9
-    }
-
-    try:
-        response = requests.post(url, headers=headers, json=data)
-        
-        # End the timer and calculate the summarization time
-        end_time = time.time()
-        summarization_time = end_time - start_time
-        
-        if response.status_code == 200:
-            result = response.json()
-            generated_summary = result['choices'][0]['message']['content']
-            
-            # ROUGE score calculation if reference summary is provided
-            if reference_summary:
-                scorer = rouge_scorer.RougeScorer(["rouge1", "rouge2", "rougeL"], use_stemmer=True)
-                scores = scorer.score(reference_summary, generated_summary)
-                rouge1 = scores["rouge1"]
-                rouge2 = scores["rouge2"]
-                rougeL = scores["rougeL"]
-                
-                # Print ROUGE scores
-                st.write(f"ROUGE-1: {rouge1.fmeasure:.4f}, ROUGE-2: {rouge2.fmeasure:.4f}, ROUGE-L: {rougeL.fmeasure:.4f}")
-                
-            return generated_summary, summarization_time
-        else:
-            return f"Error {response.status_code}: {response.text}", 0
-    except requests.exceptions.RequestException as e:
-        return f"An error occurred: {e}", 0
-
-
-
 
 # Function to Translate Text Using the Selected Model
 def translate_text(text, target_language, model_id):
@@ -199,20 +144,8 @@ def transcribe_audio(file):
 
 
 # Input Method Selection
-input_method = st.selectbox("Select Input Method", ["Upload PDF", "Upload Audio", "Upload Image"])
+input_method = st.selectbox("Select Input Method", ["Upload Audio"])
 
-# Model selection - Available only for PDF and manual text input
-if input_method in ["Upload PDF"]:
-    selected_model_name = st.selectbox("Choose a model:", list(available_models.keys()), key="model_selection")
-    
-    # Ensure that the user selects a model (no default)
-    if selected_model_name:
-        selected_model_id = available_models[selected_model_name]
-    else:
-        st.error("Please select a model to proceed.")
-        selected_model_id = None
-else:
-    selected_model_id = None
 
 # Sidebar for interaction history
 if "history" not in st.session_state:
@@ -229,56 +162,6 @@ languages = [
     "Korean", "Hindi", "Bengali", "Arabic", "Hebrew", "Persian", 
     "Punjabi", "Tamil", "Telugu", "Swahili", "Amharic"
 ]
-
-# Step 1: Handle PDF Upload and Summarization
-if input_method == "Upload PDF":
-    uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
-
-    if uploaded_file:
-        # Extract text from the uploaded PDF
-        st.write("Extracting text from the uploaded PDF...")
-        pdf_text = extract_text_from_pdf(uploaded_file)
-        st.success("Text extracted successfully!")
-        content = pdf_text
-
-        # Initialize session state variables
-        st.session_state['content'] = content  # Store the extracted text in session state
-        st.session_state['pdf_text'] = content  # Store a copy of the full PDF text for later use
-
-        # Language selection for output (only for PDF)
-        selected_language = st.selectbox("Choose your preferred language for output", languages)
-
-        # Summarize the extracted text only when the button is clicked
-        if st.button("Summarize Text"):
-            st.write("Summarizing the text...")
-
-            # Optional: If you have a reference summary, set it here for ROUGE scoring
-            reference_summary = "This is a sample reference summary for ROUGE evaluation."
-
-            # Measure summarization time
-            generated_summary, summarization_time = summarize_text_with_rouge(pdf_text, selected_model_id, reference_summary=reference_summary)
-
-            # Store the generated summary in session state
-            st.session_state['generated_summary'] = generated_summary
-
-            # Display the summary and summarization time
-            st.write("Summary:")
-            st.write(generated_summary)
-            st.write(f"Summarization Time: {summarization_time:.2f} seconds")
-
-            # Convert summary to audio in English (not translated)
-            tts = gTTS(text=generated_summary, lang='en')  # Use English summary for audio
-            tts.save("response.mp3")
-            st.audio("response.mp3", format="audio/mp3")
-
-            st.markdown("<hr>", unsafe_allow_html=True)  # Adds a horizontal line
-
-            # Translate the summary to the selected language
-            translated_summary = translate_text(generated_summary, selected_language, selected_model_id)
-            st.write(f"Translated Summary in {selected_language}:")
-            st.write(translated_summary)
-
-
         
 # Step 4: Handle Audio Upload
 elif input_method == "Upload Audio":
