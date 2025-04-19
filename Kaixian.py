@@ -152,16 +152,17 @@ call_type = st.selectbox("Select Call Type", ["Voice Call", "Video Call"])
 # Initialize user_input outside the container
 user_input = None
 
-# Create a container for the chat input and button and move it to the end (AFTER the selectbox)
-chat_container = st.container()
+# Create a container for the call icons at the bottom (AFTER the selectbox)
+call_icon_container = st.container()
 
-with chat_container:
-    col1, col2 = st.columns([5, 1])
+with call_icon_container:
+    col1, col2 = st.columns([1, 1]) # Adjust ratios as needed
     with col1:
-        user_input = st.chat_input("Ask a question:")
+        if st.button(':telephone_receiver:', key="call_button_voice", help="Initiate a Voice Call"):
+            user_input = "Initiate a Voice Call"
     with col2:
-        if st.button(':telephone_receiver:', key="call_button", help="Initiate a call"):
-            user_input = f"Initiate a {call_type}"
+        if st.button(':video_camera:', key="call_button_video", help="Initiate a Video Call"):
+            user_input = "Initiate a Video Call"
 
 if user_input:
     # Set the timezone to Malaysia for the timestamp
@@ -171,7 +172,7 @@ if user_input:
     # Prepare the interaction data for history tracking
     interaction = {
         "time": current_time,
-        "input_method": "chat_input",
+        "input_method": "call_button",
         "question": user_input,
         "response": "",
         "content_preview": content[:100] if content else "No content available"
