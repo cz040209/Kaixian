@@ -78,7 +78,7 @@ available_models = {
 # --- Insert this at the very beginning of your script ---
 def set_background(image_url):
     st.markdown(
-        f"""
+        f""
         <style>
         .stApp {{
             background-image: url("{image_url}");
