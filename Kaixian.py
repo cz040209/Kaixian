@@ -1,69 +1,168 @@
-import os
-import openai
 import requests
-import PyPDF2
 import streamlit as st
+import PyPDF2
+from datetime import datetime
+from gtts import gTTS  # Import gtts for text-to-speech
+import os
+from transformers import BlipProcessor, BlipForConditionalGeneration
+import torch
+from PIL import Image
 import json
 from io import BytesIO
-from groq import Groq
+import openai
+import pytz
+import time
+from rouge_score import rouge_scorer
 
-# File path for saving chat history
-CHAT_HISTORY_FILE = "chat_history.json"
 
-# Use the Sambanova API for Qwen 2.5-72B-Instruct and Meta-Llama-3.2-1B-Instruct
-class SambanovaClient:
-    def _init_(self, api_key, base_url):
-        self.api_key = api_key
-        self.base_url = base_url
-        openai.api_key = self.api_key
-        openai.api_base = self.base_url
+# Hugging Face BLIP-2 Setup
+hf_token = "hf_rLRfVDnchDCuuaBFeIKTAbrptaNcsHUNM"
+blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-large", token=hf_token)
+blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large", token=hf_token)
 
-    def chat(self, model, messages, temperature=0.7, top_p=1.0, max_tokens=500):
-        try:
-            response = openai.ChatCompletion.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p
-            )
-            return response
-        except Exception as e:
-            raise Exception(f"Error while calling Sambanova API: {str(e)}")
+# Custom CSS for a more premium look
+st.markdown("""
+    <style>
+        .css-1d391kg {
+            background-color: #1c1f24;  /* Dark background */
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+        .css-1v0m2ju {
+            background-color: #282c34;  /* Slightly lighter background */
+        }
+        .css-13ya6yb {
+            background-color: #61dafb;  /* Button color */
+            border-radius: 5px;
+            padding: 10px 20px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .css-10trblm {
+            font-size: 18px;
+            font-weight: bold;
+            color: #282c34;
+        }
+        .css-3t9iqy {
+            color: #61dafb;
+            font-size: 20px;
+        }
+        .botify-title {
+            font-family: 'Arial', sans-serif;
+            font-size: 48px;
+            font-weight: bold;
+            color: #61dafb;
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 30px;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-# Function to extract text from PDF using PyPDF2
-@st.cache_data
+# Botify Title
+st.markdown('<h1 class="botify-title">Botify</h1>', unsafe_allow_html=True)
+
+# Set up API Key from secrets
+api_key = st.secrets["groq_api"]["api_key"]
+
+# Base URL and headers for Groq API
+base_url = "https://api.groq.com/openai/v1"
+headers = {
+    "Authorization": f"Bearer {api_key}",  # Use api_key here, not groqapi_key
+    "Content-Type": "application/json"
+}
+
+# Available models, including the two new Sambanova models
+available_models = {
+    "Mixtral 8x7b": "mixtral-8x7b-32768",
+    "Llama-3.1-8b-instant": "llama-3.1-8b-instant",
+    "gemma2-9b-it": "gemma2-9b-it",
+}
+
+# Step 1: Function to Extract Text from PDF
 def extract_text_from_pdf(pdf_file):
-    reader = PyPDF2.PdfReader(pdf_file)
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text()
-    return text
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
+    extracted_text = ""
+    for page in pdf_reader.pages:
+        extracted_text += page.extract_text()
+    return extracted_text
 
-# Function to load chat history from a JSON file
-def load_chat_history():
-    if os.path.exists(CHAT_HISTORY_FILE):
-        with open(CHAT_HISTORY_FILE, "r") as file:
-            return json.load(file)
-    else:
-        return []
+# Updated summarize_text_with_rouge function (no changes here, just included for clarity)
+def summarize_text_with_rouge(text, model_id, reference_summary=None):
+    # Start the timer to measure summarization time
+    start_time = time.time()
+    
+    url = f"{base_url}/chat/completions"
+    data = {
+        "model": model_id,
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant. Summarize the following text:"},
+            {"role": "user", "content": text}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 300,
+        "top_p": 0.9
+    }
 
-# Function to save chat history to a JSON file
-def save_chat_history(history):
-    with open(CHAT_HISTORY_FILE, "w") as file:
-        json.dump(history, file, indent=4)
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        
+        # End the timer and calculate the summarization time
+        end_time = time.time()
+        summarization_time = end_time - start_time
+        
+        if response.status_code == 200:
+            result = response.json()
+            generated_summary = result['choices'][0]['message']['content']
+            
+            # ROUGE score calculation if reference summary is provided
+            if reference_summary:
+                scorer = rouge_scorer.RougeScorer(["rouge1", "rouge2", "rougeL"], use_stemmer=True)
+                scores = scorer.score(reference_summary, generated_summary)
+                rouge1 = scores["rouge1"]
+                rouge2 = scores["rouge2"]
+                rougeL = scores["rougeL"]
+                
+                # Print ROUGE scores
+                st.write(f"ROUGE-1: {rouge1.fmeasure:.4f}, ROUGE-2: {rouge2.fmeasure:.4f}, ROUGE-L: {rougeL.fmeasure:.4f}")
+                
+            return generated_summary, summarization_time
+        else:
+            return f"Error {response.status_code}: {response.text}", 0
+    except requests.exceptions.RequestException as e:
+        return f"An error occurred: {e}", 0
 
-# Estimate token count for messages
-def estimate_token_count(messages):
-    token_count = 0
-    for msg in messages:
-        if "content" in msg:
-            token_count += len(msg["content"].split()) * 4  # Approximate token count: 4 tokens per word
-    return token_count
 
-# Updated function to transcribe audio using the Groq API
+
+
+# Function to Translate Text Using the Selected Model
+def translate_text(text, target_language, model_id):
+    url = f"{base_url}/chat/completions"
+    data = {
+        "model": model_id,
+        "messages": [
+            {"role": "system", "content": f"Translate the following text into {target_language}."},
+            {"role": "user", "content": text}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 300,
+        "top_p": 0.9
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 200:
+            result = response.json()
+            return result['choices'][0]['message']['content']
+        else:
+            return f"Translation error: {response.status_code}"
+    except requests.exceptions.RequestException as e:
+        return f"An error occurred during translation: {e}"
+
+# Updated function to transcribe audio using the Groq Whisper API
 def transcribe_audio(file):
-    whisper_api_key = st.secrets["whisper"]["WHISPER_API_KEY"]  # Access Whisper API key (Groq API key)
+    whisper_api_key = st.secrets["whisper"]["WHISPER_API_KEY"]  # Access Whisper API key
     url = "https://api.groq.com/openai/v1/audio/transcriptions"  # Groq transcription endpoint
 
     # Check file type
@@ -74,7 +173,7 @@ def transcribe_audio(file):
         return None
 
     # Prepare file buffer with proper extension in the .name attribute
-    audio_data = file.getvalue()
+    audio_data = file.read()  # Use file.read() to handle the uploaded file correctly
     buffer = BytesIO(audio_data)
     buffer.name = f"file.{extension}"  # Assigning a valid extension based on the uploaded file
 
@@ -102,125 +201,409 @@ def transcribe_audio(file):
         st.error(f"Error during transcription: {str(e)}")
         return None
 
-# Streamlit UI setup
-st.set_page_config(page_title="Chatbot with PDF and Audio (Botify)", layout="centered")
-st.title("Botify")
+# Step 2: Function to Extract Text from Image using BLIP-2
+def extract_text_from_image(image_file):
+    # Open image from uploaded file
+    image = Image.open(image_file)
 
-# Upload a PDF file
-pdf_file = st.file_uploader("Upload your PDF file", type="pdf")
+    # Preprocess the image for the BLIP-2 model
+    inputs = blip_processor(images=image, return_tensors="pt")
 
-# Upload an audio file
-audio_file = st.file_uploader("Upload your audio file", type=["mp3", "wav", "m4a", "ogg", "opus"])
+    # Generate the caption (text) for the image
+    out = blip_model.generate(**inputs)
+    caption = blip_processor.decode(out[0], skip_special_tokens=True)
 
-# Initialize session state for chat
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = load_chat_history()
-    st.session_state.current_chat = [{"role": "assistant", "content": "Hello! I am Botify, your assistant. How can I assist you today?"}]
-    st.session_state.selected_model = "Qwen2.5-72B-Instruct"
+    return caption
 
-# Button to start a new chat
-if st.button("Start New Chat"):
-    st.session_state.current_chat = [{"role": "assistant", "content": "Hello! Starting a new conversation. How can I assist you today?"}]
-    st.session_state.chat_history.append(st.session_state.current_chat)
-    st.success("New chat started!")
+# Input Method Selection
+input_method = st.selectbox("Select Input Method", ["Upload PDF", "Upload Audio", "Upload Image"])
 
-# Handle file type and model selection
-if pdf_file:
-    model_choice = st.selectbox("Select the LLM model for PDF:", ["Sambanova (Qwen 2.5-72B-Instruct)", "Sambanova (Meta-Llama-3.2-1B-Instruct)"])
-    st.session_state.selected_model = model_choice
-    model = "Qwen2.5-72B-Instruct" if model_choice == "Sambanova (Qwen 2.5-72B-Instruct)" else "Meta-Llama-3.2-1B-Instruct"
-elif audio_file:
-    model_choice = "Whisper"
-    st.session_state.selected_model = model_choice
-    model = "whisper-1"  # Use Whisper model for audio
-
-# Display which model is being used
-st.write(f"*Model Selected:* {st.session_state.selected_model}")
-
-# Display chat dynamically
-st.write("### Chat Conversation")
-for msg in st.session_state.current_chat:
-    if isinstance(msg, dict) and "role" in msg and "content" in msg:
-        if msg["role"] == "user":
-            st.markdown(f"\U0001F9D1 User:** {msg['content']}")
-        elif msg["role"] == "assistant":
-            st.markdown(f"\U0001F916 Botify:** {msg['content']}")
+# Model selection - Available only for PDF and manual text input
+if input_method in ["Upload PDF"]:
+    selected_model_name = st.selectbox("Choose a model:", list(available_models.keys()), key="model_selection")
+    
+    # Ensure that the user selects a model (no default)
+    if selected_model_name:
+        selected_model_id = available_models[selected_model_name]
     else:
-        st.error("Error: A message is missing or malformed in the chat history.")
+        st.error("Please select a model to proceed.")
+        selected_model_id = None
+else:
+    selected_model_id = None
 
-# API keys
-sambanova_api_key = st.secrets["general"]["SAMBANOVA_API_KEY"]
+# Sidebar for interaction history
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-# Handle user input and process chat
-user_input = st.text_input("Your message:", key="user_input", placeholder="Type your message here")
-submit_button = st.button("Submit", key="submit_button")
+# Initialize content variable
+content = ""
 
-if submit_button and user_input:
-    st.session_state.current_chat.append({"role": "user", "content": user_input})
+# Language selection for translation (only for PDF)
+languages = [
+    "English", "Chinese", "Spanish", "French", "Italian", "Portuguese", "Romanian", 
+    "German", "Dutch", "Swedish", "Danish", "Norwegian", "Russian", 
+    "Polish", "Czech", "Ukrainian", "Serbian", "Japanese", 
+    "Korean", "Hindi", "Bengali", "Arabic", "Hebrew", "Persian", 
+    "Punjabi", "Tamil", "Telugu", "Swahili", "Amharic"
+]
 
-    # Process PDF content if uploaded
-    if pdf_file:
-        text_content = extract_text_from_pdf(pdf_file)
-        prompt_text = f"Document content:\n{text_content}\n\nUser question: {user_input}\nAnswer:"
-    else:
-        prompt_text = f"User question: {user_input}\nAnswer:"
+# Step 1: Handle PDF Upload and Summarization
+if input_method == "Upload PDF":
+    uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 
-    # Process audio transcription if uploaded
-    if audio_file:
+    if uploaded_file:
+        # Extract text from the uploaded PDF
+        st.write("Extracting text from the uploaded PDF...")
+        pdf_text = extract_text_from_pdf(uploaded_file)
+        st.success("Text extracted successfully!")
+        content = pdf_text
+
+        # Initialize session state variables
+        st.session_state['content'] = content  # Store the extracted text in session state
+        st.session_state['pdf_text'] = content  # Store a copy of the full PDF text for later use
+
+        # Language selection for output (only for PDF)
+        selected_language = st.selectbox("Choose your preferred language for output", languages)
+
+        # Summarize the extracted text only when the button is clicked
+        if st.button("Summarize Text"):
+            st.write("Summarizing the text...")
+
+            # Optional: If you have a reference summary, set it here for ROUGE scoring
+            reference_summary = "This is a sample reference summary for ROUGE evaluation."
+
+            # Measure summarization time
+            generated_summary, summarization_time = summarize_text_with_rouge(pdf_text, selected_model_id, reference_summary=reference_summary)
+
+            # Store the generated summary in session state
+            st.session_state['generated_summary'] = generated_summary
+
+            # Display the summary and summarization time
+            st.write("Summary:")
+            st.write(generated_summary)
+            st.write(f"Summarization Time: {summarization_time:.2f} seconds")
+
+            # Convert summary to audio in English (not translated)
+            tts = gTTS(text=generated_summary, lang='en')  # Use English summary for audio
+            tts.save("response.mp3")
+            st.audio("response.mp3", format="audio/mp3")
+
+            st.markdown("<hr>", unsafe_allow_html=True)  # Adds a horizontal line
+
+            # Translate the summary to the selected language
+            translated_summary = translate_text(generated_summary, selected_language, selected_model_id)
+            st.write(f"Translated Summary in {selected_language}:")
+            st.write(translated_summary)
+
+# Step 3: Handle Image Upload
+elif input_method == "Upload Image":
+    uploaded_image = st.file_uploader("Upload an image file", type=["jpg", "png"])
+    
+    if uploaded_image:
+        st.write("Image uploaded. Extracting text using BLIP-2...")
         try:
-            transcription = transcribe_audio(audio_file)
-            prompt_text += f"\n\nTranscribed audio content:\n{transcription}"
+            # Extract text using BLIP-2
+            image_text = extract_text_from_image(uploaded_image)
+            st.success("Text extracted successfully!")
+
+            # Add the title "The image describes:" before the extracted text
+            st.markdown("### The image describes:")
+            st.markdown(f"<div style='font-size: 14px;'>{image_text}</div>", unsafe_allow_html=True)
+
+            content = image_text  # Set the extracted text as content for further processing
         except Exception as e:
-            st.error(f"Error while transcribing audio: {e}")
+            st.error(f"Error extracting text from image: {e}")
 
-    st.session_state.current_chat.append({"role": "system", "content": prompt_text})
+        # Model selection for Q&A
+        selected_model_name = st.selectbox("Choose a model:", list(available_models.keys()), key="model_selection")
+        selected_model_id = available_models.get(selected_model_name)
 
-    context_length = 8192 if model == "Qwen2.5-72B-Instruct" else 16384 if model == "Meta-Llama-3.2-1B-Instruct" else 4096
+        
+# Step 4: Handle Audio Upload
+elif input_method == "Upload Audio":
+    uploaded_audio = st.file_uploader("Upload an audio file", type=["mp3", "wav"])
 
-    total_tokens = estimate_token_count(st.session_state.current_chat)
-    if total_tokens > context_length:
-        st.session_state.current_chat = st.session_state.current_chat[-3:]
+    if uploaded_audio:
+        st.write("Audio file uploaded. Processing audio...")
 
-    remaining_tokens = context_length - estimate_token_count(st.session_state.current_chat)
-    max_tokens = min(max(remaining_tokens, 1), 1024)
+        # Transcribe using Groq's Whisper API
+        transcript = transcribe_audio(uploaded_audio)
+        if transcript:
+            st.write("Transcription:")
+            st.write(transcript)
+            content = transcript  # Set the transcription as content
+        else:
+            st.error("Failed to transcribe the audio.")
+    else:
+        st.error("Please upload an audio file to proceed.")
+
+    # Select a model for translation and Q&A
+    selected_model_name = st.selectbox("Choose a model:", list(available_models.keys()), key="audio_model_selection")
+    selected_model_id = available_models.get(selected_model_name)
+
+# Translation of the extracted text to selected language (only if PDF)
+if content and input_method == "Upload PDF":
+    translated_content = translate_text(content, selected_language, selected_model_id)
+
+
+
+# Step 5: Allow real-time conversation with the chatbot
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+# Display the conversation history
+for interaction in st.session_state.history:
+    # Display the timestamp and question from the user
+    st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
+    
+    # Display the assistant's response with a "Thinking..." placeholder if no response yet
+    st.chat_message("assistant").write(interaction["response"] or "Thinking...")
+
+
+
+# Get user input using the chat-style input field
+user_input = st.chat_input("Ask a question:")
+
+if user_input:
+    # Set the timezone to Malaysia for the timestamp
+    malaysia_tz = pytz.timezone("Asia/Kuala_Lumpur")
+    current_time = datetime.now(malaysia_tz).strftime("%Y-%m-%d %H:%M:%S")
+
+    # Prepare the interaction data for history tracking
+    interaction = {
+        "time": current_time,
+        "input_method": "chat_input",
+        "question": user_input,
+        "response": "",
+        "content_preview": content[:100] if content else "No content available"
+    }
+
+    # Add the user question to the history
+    st.session_state.history.append(interaction)
+
+    # Display the user's input immediately
+    st.chat_message("user").write(user_input)
+
+    # Display "Thinking..." for assistant response
+    st.chat_message("assistant").write("Thinking...")
+
+    # Track start time for response calculation
+    start_time = time.time()
+
+    # Prepare the data for API call
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": user_input}
+    ]
+    if content:
+        messages.insert(1, {"role": "system", "content": f"Use the following content: {content}"})
+
+    data = {
+        "model": selected_model_id,
+        "messages": messages,
+        "temperature": 0.7,
+        "max_tokens": 200,
+        "top_p": 0.9
+    }
 
     try:
-        if model_choice != "Whisper":  # If not Whisper, use Sambanova API for PDF-based models
-            response = SambanovaClient(
-                api_key=sambanova_api_key,
-                base_url="https://api.sambanova.ai/v1"
-            ).chat(
-                model=model,
-                messages=st.session_state.current_chat,
-                temperature=0.1,
-                top_p=0.1,
-                max_tokens=max_tokens
-            )
-            if 'choices' in response and response['choices']:
-                answer = response['choices'][0]['message']['content'].strip()
-                st.session_state.current_chat.append({"role": "assistant", "content": answer})
-                save_chat_history(st.session_state.chat_history)
+        # Send the request to the API
+        response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data)
+
+        # Track end time for response calculation
+        end_time = time.time()
+        response_time = end_time - start_time
+
+        if response.status_code == 200:
+            result = response.json()
+            answer = result['choices'][0]['message']['content']
+
+            # Update the latest interaction with the model's response
+            st.session_state.history[-1]["response"] = answer
+
+            # Display the assistant's response
+            st.chat_message("assistant").write(answer)
+
+            # Display the response time
+            st.write(f"Response Time: {response_time:.2f} seconds")
+
+            # Optionally calculate ROUGE scores (if applicable)
+            if 'generated_summary' in st.session_state:
+                reference_summary = st.session_state['generated_summary']
+
+                # Calculate ROUGE scores
+                scorer = rouge_scorer.RougeScorer(["rouge1", "rouge2", "rougeL"], use_stemmer=True)
+                scores = scorer.score(reference_summary, answer)
+                rouge1 = scores["rouge1"]
+                rouge2 = scores["rouge2"]
+                rougeL = scores["rougeL"]
+
+                # Display ROUGE scores
+                st.write(f"ROUGE-1: {rouge1.fmeasure:.4f}, ROUGE-2: {rouge2.fmeasure:.4f}, ROUGE-L: {rougeL.fmeasure:.4f}")
+        else:
+            st.chat_message("assistant").write(f"Error {response.status_code}: {response.text}")
+    except requests.exceptions.RequestException as e:
+        st.chat_message("assistant").write(f"An error occurred: {e}")
+
+
+# Initialize session state variables if not already set
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+if "past_conversations" not in st.session_state:
+    st.session_state.past_conversations = []
+
+if "current_conversation_index" not in st.session_state:
+    st.session_state.current_conversation_index = -1  # -1 indicates no specific past conversation is active
+
+# Display the interaction history in the sidebar with clickable expanders
+st.sidebar.header("Interaction History")
+
+# Add the "Clear History" button to clear all past conversations
+if st.sidebar.button("Clear History"):
+    # Clear the archive of past conversations
+    st.session_state.past_conversations = []
+    st.session_state.history = []
+    st.session_state.current_conversation_index = -1
+    st.sidebar.success("All past conversations have been cleared!")
+    st.rerun()  # Refresh the app to reflect the changes
+
+# Display the current chat history if available
+if st.session_state.history:
+    st.sidebar.write("**Current Chat:**")
+    with st.sidebar.expander("Full Conversation"):
+        for idx, interaction in enumerate(st.session_state.history):
+            st.markdown(f"**Interaction {idx+1}:**")
+            st.markdown(f"- **Time:** {interaction['time']}")
+            st.markdown(f"- **Question:** {interaction['question']}")
+            st.markdown(f"- **Response:** {interaction['response']}")
+
+
+# Display the past conversations and allow users to navigate between them
+if st.session_state.past_conversations:
+    st.sidebar.write("**Past Conversations:**")
+    for conv_idx, conversation in enumerate(st.session_state.past_conversations):
+        with st.sidebar.expander(f"Conversation {conv_idx+1}"):
+            for idx, interaction in enumerate(conversation):
+                # Display the interaction time along with the question and response
+                st.markdown(f"**Interaction {idx+1}:**")
+                st.markdown(f"- **Time:** {interaction['time']}")
+                st.markdown(f"- **Question:** {interaction['question']}")
+                st.markdown(f"- **Response:** {interaction['response']}")
+
+            # Add a button to switch to this past conversation
+            if st.sidebar.button(f"Switch to Conversation {conv_idx+1}", key=f"switch_{conv_idx}"):
+                # Save the current history to past conversations
+                if st.session_state.current_conversation_index == -1 and st.session_state.history:
+                    st.session_state.past_conversations.append(st.session_state.history)
+                
+                # Load the selected conversation into the current history
+                st.session_state.history = conversation
+                st.session_state.current_conversation_index = conv_idx
+                st.sidebar.success(f"Switched to Conversation {conv_idx+1}")
+                st.rerun()  # Refresh the app to reflect the changes
+
+else:
+    st.sidebar.write("No past conversations yet.")
+
+# Add the "Start New Chat" button to reset only the current interaction history
+if st.sidebar.button("Start a New Chat"):
+    if st.session_state.history:
+        # Save the current history to past conversations
+        if st.session_state.current_conversation_index == -1:
+            st.session_state.past_conversations.append(st.session_state.history)
+        else:
+            # Update the active conversation in past conversations
+            st.session_state.past_conversations[st.session_state.current_conversation_index] = st.session_state.history
+
+    # Clear the current history for a new chat session
+    st.session_state.history = []
+    st.session_state.current_conversation_index = -1
+    st.session_state['content'] = ''
+    st.session_state['generated_summary'] = ''
+    st.sidebar.success("New chat started!")
+    st.rerun()  # Refresh the app to reflect the changes
+
+# Add functionality to save the entire conversation
+def append_to_history(question, response):
+    """Append a question and response to the current conversation history."""
+    st.session_state.history.append({
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "question": question,
+        "response": response
+    })
+
+
+
+# Function to ask a question about the content
+def ask_question(question):
+    if question and selected_model_id:
+        # Track start time for question response
+        start_time = time.time()
+
+        # Prepare the request payload for the question
+        url = f"{base_url}/chat/completions"
+        data = {
+            "model": selected_model_id,
+            "messages": [
+                {"role": "system", "content": "You are a helpful assistant. Use the following content to answer the user's questions."},
+                {"role": "system", "content": st.session_state['content']},  # Use the current content as context
+                {"role": "user", "content": question}
+            ],
+            "temperature": 0.7,
+            "max_tokens": 200,
+            "top_p": 0.9
+        }
+
+        try:
+            # Send request to the API
+            response = requests.post(url, headers=headers, json=data)
+            
+            # Track end time for question response
+            end_time = time.time()
+            response_time = end_time - start_time
+
+            if response.status_code == 200:
+                result = response.json()
+                answer = result['choices'][0]['message']['content']
+
+                # Track the interaction history
+                malaysia_tz = pytz.timezone("Asia/Kuala_Lumpur")
+                current_time = datetime.now(malaysia_tz).strftime("%Y-%m-%d %H:%M:%S")
+
+                # Only store interactions with a valid question and response
+                if answer and question:
+                    interaction = {
+                        "time": current_time,
+                        "question": question,
+                        "response": answer,
+                        "content_preview": st.session_state['content'][:100] if st.session_state['content'] else "No content available",
+                        "response_time": f"{response_time:.2f} seconds"  # Store the response time
+                    }
+                    if "history" not in st.session_state:
+                        st.session_state.history = []
+                    st.session_state.history.append(interaction)  # Add a new entry only when there's a valid response
+
+                    # Display the answer along with the response time
+                    st.write(f"Answer: {answer}")
+                    st.write(f"Question Response Time: {response_time:.2f} seconds")
+
+                    # Compute ROUGE scores for the Q&A after summarization
+                    if 'generated_summary' in st.session_state:
+                        reference_summary = st.session_state['generated_summary']
+                        scorer = rouge_scorer.RougeScorer(["rouge1", "rouge2", "rougeL"], use_stemmer=True)
+                        scores = scorer.score(reference_summary, answer)
+                        rouge1 = scores["rouge1"]
+                        rouge2 = scores["rouge2"]
+                        rougeL = scores["rougeL"]
+
+                        # Display ROUGE scores for the question-answering process
+                        st.write(f"ROUGE-1: {rouge1.fmeasure:.4f}, ROUGE-2: {rouge2.fmeasure:.4f}, ROUGE-L: {rougeL.fmeasure:.4f}")
+
+                    # Update content with the latest answer
+                    st.session_state['content'] += f"\n{question}: {answer}"
+
             else:
-                st.error("Error: Empty response from the model.")
-        else:  # If Whisper model, return transcription text
-            st.session_state.current_chat.append({"role": "assistant", "content": "Transcribed audio content: " + prompt_text})
-            save_chat_history(st.session_state.chat_history)
-
-    except Exception as e:
-        st.error(f"Error while fetching response: {e}")
-
-# Display chat history with deletion option
-with st.expander("Chat History"):
-    for i, conversation in enumerate(st.session_state.chat_history):
-        with st.container():
-            st.write(f"*Conversation {i + 1}:*")
-            for msg in conversation:
-                if isinstance(msg, dict) and "role" in msg and "content" in msg:
-                    role = "User" if msg["role"] == "user" else "Botify"
-                    st.write(f"{role}:** {msg['content']}")
-                else:
-                    st.error(f"Error: Malformed message in conversation {i + 1}.")
-            if st.button(f"Delete Conversation {i + 1}", key=f"delete_{i}"):
-                del st.session_state.chat_history[i]
-                save_chat_history(st.session_state.chat_history)
-                st.experimental_rerun()
+                st.write(f"Error {response.status_code}: {response.text}")
+        except requests.exceptions.RequestException as e:
+            st.write(f"An error occurred: {e}")
