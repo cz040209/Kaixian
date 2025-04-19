@@ -160,8 +160,6 @@ for interaction in st.session_state.history:
     st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
     st.chat_message("assistant").write(interaction["response"] or "Thinking...")
 
-# Option to select call type (define it here)
-call_type = st.selectbox("Select Call Type", ["Voice Call", "Video Call"])
 
 # Initialize user_input outside the container
 user_input = None
