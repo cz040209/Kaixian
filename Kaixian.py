@@ -25,7 +25,7 @@ def set_background(image_url):
         unsafe_allow_html=True
     )
 
-background_image_url = "https://murf.ai/resources/media/posts/90/ai-with-voice-new.png"
+background_image_url = "https://e3.365dm.com/23/06/1600x900/skynews-ai-artificial-intelligence_6181817.jpg?20230608152148"
 set_background(background_image_url)
 
 st.markdown("""
