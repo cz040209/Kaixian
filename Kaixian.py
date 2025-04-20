@@ -26,7 +26,6 @@ def set_background(image_url):
     )
 
 background_image_url = "https://i.pinimg.com/originals/6b/a1/74/6ba174bf48e9b6dc8d8bd19d13c9caa9.gif"
-set_background(background_image_url)
 
 st.markdown("""
     <style>
@@ -107,21 +106,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Create a container for the call icons at the bottom
-call_icon_container = st.container()
-
-with call_icon_container:
-    st.markdown("""
-        <div class="fixed-bottom-icons">
-            <button data-testid="stButton" key="call_button_voice" title="Initiate a Voice Call">📞</button>
-            <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
-        </div>
-    """, unsafe_allow_html=True)
-
-
-# Emøtica Title
-st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
-
 # Initialize session state for authentication
 if "authentication_status" not in st.session_state:
     st.session_state["authentication_status"] = None
@@ -171,9 +155,23 @@ def show_login_register():
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Chat", "Login / Register"])
 
-if page == "Login / Register":
-    show_login_register()
-elif page == "Chat":
+if page == "Chat":
+    # Apply background and call buttons only on the Chat page
+    set_background(background_image_url)
+
+    # Create a container for the call icons at the bottom
+    call_icon_container = st.container()
+    with call_icon_container:
+        st.markdown("""
+            <div class="fixed-bottom-icons">
+                <button data-testid="stButton" key="call_button_voice" title="Initiate a Voice Call">📞</button>
+                <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
+            </div>
+        """, unsafe_allow_html=True)
+
+    # Emøtica Title
+    st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
+
     if st.session_state["authentication_status"]:
         # Set up API Key directly
         api_key = "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"
@@ -316,12 +314,14 @@ elif page == "Chat":
                 st.chat_message("assistant").write(f"An error occurred: {e}")
 
 
-# Sidebar for interaction history
-if "history" not in st.session_state:
-    st.session_state.history = []
+        # Sidebar for interaction history
+        if "history" not in st.session_state:
+            st.session_state.history = []
 
-# Initialize content variable
-content = ""
+        # Initialize content variable
+        content = ""
+
+
 
 
 
