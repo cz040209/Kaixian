@@ -13,7 +13,6 @@ import openai
 import pytz
 import time
 
-
 def set_background(image_url):
     st.markdown(
         f"""
@@ -66,6 +65,14 @@ st.markdown("""
             text-align: center;
             margin-top: 50px;
             margin-bottom: 30px;
+            position: fixed; /* Make the title fixed */
+            top: 10px;      /* Adjust the top position as needed */
+            left: 50%;     /* Center horizontally */
+            transform: translateX(-50%); /* Adjust for centering */
+            width: 100%;    /* Ensure it spans the width */
+            z-index: 1000;  /* Ensure it's on top of other elements */
+            background-color: rgba(28, 31, 36, 0.8); /* Optional: Add a slightly transparent background */
+            padding: 10px 0; /* Optional: Add some padding */
         }
     </style>
 """, unsafe_allow_html=True)
