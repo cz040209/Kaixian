@@ -99,11 +99,11 @@ st.markdown("""
         }
         /* Specific color for the voice call button */
         .fixed-bottom-icons button[data-testid="stButton"][key="call_button_voice"] {
-            background-color: #007bff; /* Example blue color */
+            background-color: 007bff; /* Example blue color */
         }
         /* Specific color for the video call button */
         .fixed-bottom-icons button[data-testid="stButton"][key="call_button_video"] {
-            background-color: #28a745; /* Example green color */
+            background-color: 28a745; /* Example green color */
         }
     </style>
 """, unsafe_allow_html=True)
@@ -115,7 +115,7 @@ with call_icon_container:
     st.markdown("""
         <div class="fixed-bottom-icons">
             <button data-testid="stButton" key="call_button_voice" title="Initiate a Voice Call">📞</button>
-            <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">🎬</button>
+            <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
         </div>
     """, unsafe_allow_html=True)
 
