@@ -318,285 +318,92 @@ elif page == "Chat":
                 st.chat_message("assistant").write(f"An error occurred: {e}")
 
 
-        # Sidebar for interaction history
+        # Initialize session state variables if not already set
         if "history" not in st.session_state:
             st.session_state.history = []
 
-        # Initialize content variable
-        content = ""
+        if "past_conversations" not in st.session_state:
+            st.session_state.past_conversations = []
 
-        # Sidebar for model selection
-        st.sidebar.header("Model Selection")
-        selected_model = st.sidebar.selectbox("Choose a model:", list(available_models.keys()))
-        selected_model_id = available_models[selected_model]
+        if "current_conversation_index" not in st.session_state:
+            st.session_state.current_conversation_index = -1  # -1 indicates no specific past conversation is active
 
-        # Sidebar for interaction history (should come early)
-        if "history" not in st.session_state:
+        # Display the interaction history in the sidebar with clickable expanders
+        st.sidebar.header("Interaction History")
+
+        # Add the "Clear History" button to clear all past conversations
+        if st.sidebar.button("Clear History"):
+            # Clear the archive of past conversations
+            st.session_state.past_conversations = []
             st.session_state.history = []
-        content = ""
+            st.session_state.current_conversation_index = -1
+            st.sidebar.success("All past conversations have been cleared!")
+            st.rerun()  # Refresh the app to reflect the changes
 
-        # Display conversation history
-        for interaction in st.session_state.history:
-            st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
-            st.chat_message("assistant").write(interaction["response"] or "Thinking...")
-
-        # Get user input based on button clicks
-        user_input = None
-        if st.session_state.get("call_button_voice"):
-            user_input = "Initiate a voice call."  # You can customize this message
-        elif st.session_state.get("call_button_video"):
-            user_input = "Initiate a video call."  # You can customize this message
-
-        if user_input:
-            # Set the timezone to Malaysia for the timestamp
-            malaysia_tz = pytz.timezone("Asia/Kuala_Lumpur")
-            current_time = datetime.now(malaysia_tz).strftime("%Y-%m-%d %H:%M:%S")
-
-            # Prepare the interaction data for history tracking
-            interaction = {
-                "time": current_time,
-                "input_method": "call_button",
-                "question": user_input,
-                "response": "",
-                "content_preview": content[:100] if content else "No content available"
-            }
-
-            # Add the user question to the history
-            st.session_state.history.append(interaction)
-
-            # Display the user's input immediately
-            st.chat_message("user").write(user_input)
-
-            # Display "Thinking..." for assistant response
-            st.chat_message("assistant").write("Thinking...")
-
-            # Track start time for response calculation
-            start_time = time.time()
-
-            # Prepare the data for API call
-            messages = [
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": user_input}
-            ]
-            if content:
-                messages.insert(1, {"role": "system", "content": f"Use the following content: {content}"})
-
-            data = {
-                "model": selected_model_id,
-                "messages": messages,
-                "temperature": 0.7,
-                "max_tokens": 200,
-                "top_p": 0.9
-            }
-
-            try:
-                # Send the request to the API
-                response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data)
-
-                # Track end time for response calculation
-                end_time = time.time()
-                response_time = end_time - start_time
-
-                if response.status_code == 200:
-                    result = response.json()
-                    answer = result['choices'][0]['message']['content']
-
-                    # Update the latest interaction with the model's response
-                    st.session_state.history[-1]["response"] = answer
-
-                    # Display the assistant's response
-                    st.chat_message("assistant").write(answer)
-
-                    # Display the response time
-                    st.write(f"Response Time: {response_time:.2f} seconds")
-
-                else:
-                    st.chat_message("assistant").write(f"Error {response.status_code}: {response.text}")
-            except requests.exceptions.RequestException as e:
-                st.chat_message("assistant").write(f"An error occurred: {e}")
+        # Display the current chat history if available
+        if st.session_state.history:
+            st.sidebar.write("**Current Chat:**")
+            with st.sidebar.expander("Full Conversation"):
+                for idx, interaction in enumerate(st.session_state.history):
+                    st.markdown(f"**Interaction {idx+1}:**")
+                    st.markdown(f"- **Time:** {interaction['time']}")
+                    st.markdown(f"- **Question:** {interaction['question']}")
+                    st.markdown(f"- **Response:** {interaction['response']}")
 
 
-# Sidebar for interaction history
-if "history" not in st.session_state:
-    st.session_state.history = []
+        # Display the past conversations and allow users to navigate between them
+        if st.session_state.past_conversations:
+            st.sidebar.write("**Past Conversations:**")
+            for conv_idx, conversation in enumerate(st.session_state.past_conversations):
+                with st.sidebar.expander(f"Conversation {conv_idx+1}"):
+                    for idx, interaction in enumerate(conversation):
+                        # Display the interaction time along with the question and response
+                        st.markdown(f"**Interaction {idx+1}:**")
+                        st.markdown(f"- **Time:** {interaction['time']}")
+                        st.markdown(f"- **Question:** {interaction['question']}")
+                        st.markdown(f"- **Response:** {interaction['response']}")
 
-# Initialize content variable
-content = ""
+                    # Add a button to switch to this past conversation
+                    if st.sidebar.button(f"Switch to Conversation {conv_idx+1}", key=f"switch_{conv_idx}"):
+                        # Save the current history to past conversations
+                        if st.session_state.current_conversation_index == -1 and st.session_state.history:
+                            st.session_state.past_conversations.append(st.session_state.history)
 
-
-
-# Sidebar for interaction history (should come early)
-if "history" not in st.session_state:
-    st.session_state.history = []
-content = ""
-
-# Display conversation history
-for interaction in st.session_state.history:
-    st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
-    st.chat_message("assistant").write(interaction["response"] or "Thinking...")
-
-# Get user input based on button clicks
-user_input = None
-if st.session_state.get("call_button_voice"):
-    user_input = "Initiate a voice call."  # You can customize this message
-elif st.session_state.get("call_button_video"):
-    user_input = "Initiate a video call."  # You can customize this message
-            
-if user_input:
-    # Set the timezone to Malaysia for the timestamp
-    malaysia_tz = pytz.timezone("Asia/Kuala_Lumpur")
-    current_time = datetime.now(malaysia_tz).strftime("%Y-%m-%d %H:%M:%S")
-
-    # Prepare the interaction data for history tracking
-    interaction = {
-        "time": current_time,
-        "input_method": "call_button",
-        "question": user_input,
-        "response": "",
-        "content_preview": content[:100] if content else "No content available"
-    }
-
-    # Add the user question to the history
-    st.session_state.history.append(interaction)
-
-    # Display the user's input immediately
-    st.chat_message("user").write(user_input)
-
-    # Display "Thinking..." for assistant response
-    st.chat_message("assistant").write("Thinking...")
-
-    # Track start time for response calculation
-    start_time = time.time()
-
-    # Prepare the data for API call
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": user_input}
-    ]
-    if content:
-        messages.insert(1, {"role": "system", "content": f"Use the following content: {content}"})
-
-    data = {
-        "model": selected_model_id,
-        "messages": messages,
-        "temperature": 0.7,
-        "max_tokens": 200,
-        "top_p": 0.9
-    }
-
-    try:
-        # Send the request to the API
-        response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data)
-
-        # Track end time for response calculation
-        end_time = time.time()
-        response_time = end_time - start_time
-
-        if response.status_code == 200:
-            result = response.json()
-            answer = result['choices'][0]['message']['content']
-
-            # Update the latest interaction with the model's response
-            st.session_state.history[-1]["response"] = answer
-
-            # Display the assistant's response
-            st.chat_message("assistant").write(answer)
-
-            # Display the response time
-            st.write(f"Response Time: {response_time:.2f} seconds")
+                        # Load the selected conversation into the current history
+                        st.session_state.history = conversation
+                        st.session_state.current_conversation_index = conv_idx
+                        st.sidebar.success(f"Switched to Conversation {conv_idx+1}")
+                        st.rerun()  # Refresh the app to reflect the changes
 
         else:
-            st.chat_message("assistant").write(f"Error {response.status_code}: {response.text}")
-    except requests.exceptions.RequestException as e:
-        st.chat_message("assistant").write(f"An error occurred: {e}")
+            st.sidebar.write("No past conversations yet.")
 
-
-# Initialize session state variables if not already set
-if "history" not in st.session_state:
-    st.session_state.history = []
-
-if "past_conversations" not in st.session_state:
-    st.session_state.past_conversations = []
-
-if "current_conversation_index" not in st.session_state:
-    st.session_state.current_conversation_index = -1  # -1 indicates no specific past conversation is active
-
-# Display the interaction history in the sidebar with clickable expanders
-st.sidebar.header("Interaction History")
-
-# Add the "Clear History" button to clear all past conversations
-if st.sidebar.button("Clear History"):
-    # Clear the archive of past conversations
-    st.session_state.past_conversations = []
-    st.session_state.history = []
-    st.session_state.current_conversation_index = -1
-    st.sidebar.success("All past conversations have been cleared!")
-    st.rerun()  # Refresh the app to reflect the changes
-
-# Display the current chat history if available
-if st.session_state.history:
-    st.sidebar.write("**Current Chat:**")
-    with st.sidebar.expander("Full Conversation"):
-        for idx, interaction in enumerate(st.session_state.history):
-            st.markdown(f"**Interaction {idx+1}:**")
-            st.markdown(f"- **Time:** {interaction['time']}")
-            st.markdown(f"- **Question:** {interaction['question']}")
-            st.markdown(f"- **Response:** {interaction['response']}")
-
-
-# Display the past conversations and allow users to navigate between them
-if st.session_state.past_conversations:
-    st.sidebar.write("**Past Conversations:**")
-    for conv_idx, conversation in enumerate(st.session_state.past_conversations):
-        with st.sidebar.expander(f"Conversation {conv_idx+1}"):
-            for idx, interaction in enumerate(conversation):
-                # Display the interaction time along with the question and response
-                st.markdown(f"**Interaction {idx+1}:**")
-                st.markdown(f"- **Time:** {interaction['time']}")
-                st.markdown(f"- **Question:** {interaction['question']}")
-                st.markdown(f"- **Response:** {interaction['response']}")
-
-            # Add a button to switch to this past conversation
-            if st.sidebar.button(f"Switch to Conversation {conv_idx+1}", key=f"switch_{conv_idx}"):
+        # Add the "Start New Chat" button to reset only the current interaction history
+        if st.sidebar.button("Start a New Chat"):
+            if st.session_state.history:
                 # Save the current history to past conversations
-                if st.session_state.current_conversation_index == -1 and st.session_state.history:
+                if st.session_state.current_conversation_index == -1:
                     st.session_state.past_conversations.append(st.session_state.history)
-                
-                # Load the selected conversation into the current history
-                st.session_state.history = conversation
-                st.session_state.current_conversation_index = conv_idx
-                st.sidebar.success(f"Switched to Conversation {conv_idx+1}")
-                st.rerun()  # Refresh the app to reflect the changes
+                else:
+                    # Update the active conversation in past conversations
+                    st.session_state.past_conversations[st.session_state.current_conversation_index] = st.session_state.history
 
-else:
-    st.sidebar.write("No past conversations yet.")
+            # Clear the current history for a new chat session
+            st.session_state.history = []
+            st.session_state.current_conversation_index = -1
+            st.session_state['content'] = ''
+            st.session_state['generated_summary'] = ''
+            st.sidebar.success("New chat started!")
+            st.rerun()  # Refresh the app to reflect the changes
 
-# Add the "Start New Chat" button to reset only the current interaction history
-if st.sidebar.button("Start a New Chat"):
-    if st.session_state.history:
-        # Save the current history to past conversations
-        if st.session_state.current_conversation_index == -1:
-            st.session_state.past_conversations.append(st.session_state.history)
-        else:
-            # Update the active conversation in past conversations
-            st.session_state.past_conversations[st.session_state.current_conversation_index] = st.session_state.history
-
-    # Clear the current history for a new chat session
-    st.session_state.history = []
-    st.session_state.current_conversation_index = -1
-    st.session_state['content'] = ''
-    st.session_state['generated_summary'] = ''
-    st.sidebar.success("New chat started!")
-    st.rerun()  # Refresh the app to reflect the changes
-
-# Add functionality to save the entire conversation
-def append_to_history(question, response):
-    """Append a question and response to the current conversation history."""
-    st.session_state.history.append({
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "question": question,
-        "response": response
-    })
+        # Add functionality to save the entire conversation
+        def append_to_history(question, response):
+            """Append a question and response to the current conversation history."""
+            st.session_state.history.append({
+                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "question": question,
+                "response": response
+            })
 
 
 # Function to ask a question about the content
