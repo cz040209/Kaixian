@@ -93,17 +93,17 @@ st.markdown("""
             align-items: center;
             font-size: 20px;
             border: none;
-            background-color: #61dafb;
+            background-color: #61dafb; /* Set a default background color */
             color: white;
             cursor: pointer;
         }
         /* Specific color for the voice call button */
         .fixed-bottom-icons button[data-testid="stButton"][key="call_button_voice"] {
-            background-color: 007bff; /* Example blue color */
+            background-color: #007bff; /* Example blue color */
         }
         /* Specific color for the video call button */
         .fixed-bottom-icons button[data-testid="stButton"][key="call_button_video"] {
-            background-color: 28a745; /* Example green color */
+            background-color: #28a745; /* Example green color */
         }
     </style>
 """, unsafe_allow_html=True)
@@ -118,6 +118,7 @@ with call_icon_container:
             <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
         </div>
     """, unsafe_allow_html=True)
+
 
 # Emøtica Title
 st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
