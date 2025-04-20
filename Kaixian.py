@@ -26,6 +26,7 @@ def set_background(image_url):
     )
 
 background_image_url = "https://i.pinimg.com/originals/6b/a1/74/6ba174bf48e9b6dc8d8bd19d13c9caa9.gif"
+set_background(background_image_url)
 
 st.markdown("""
     <style>
