@@ -115,8 +115,8 @@ st.markdown("""
     <style>
         button[data-testid="stButton"][key^="call_button"] {
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             display: flex;
             justify-content: center;
             align-items: center;
