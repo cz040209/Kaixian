@@ -26,7 +26,6 @@ def set_background(image_url):
     )
 
 background_image_url = "https://i.pinimg.com/originals/6b/a1/74/6ba174bf48e9b6dc8d8bd19d13c9caa9.gif"
-set_background(background_image_url)
 
 st.markdown("""
     <style>
@@ -156,6 +155,16 @@ def logout():
     st.sidebar.info("Logged out")
 
 def login_page():
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-image: none !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     st.subheader("Login")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
@@ -164,6 +173,16 @@ def login_page():
     st.markdown("Don't have an account? [Register here](register)")
 
 def register_page():
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-image: none !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     st.subheader("Register")
     username = st.text_input("New Username")
     password = st.text_input("New Password", type="password")
@@ -183,6 +202,7 @@ if page == "Login":
 elif page == "Register":
     register_page()
 elif page == "Chat":
+    set_background(background_image_url)
     if st.session_state["authentication_status"]:
         # Set up API Key directly
         api_key = "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"
@@ -418,6 +438,11 @@ elif page == "Chat":
                     st.chat_message("assistant").write(f"Error {response.status_code}: {response.text}")
             except requests.exceptions.RequestException as e:
                 st.chat_message("assistant").write(f"An error occurred: {e}")
+
+
+        # Initialize session state variables if not already set
+        if "history" not in st.session_state:
+            st.session_state.history
 
 
         # Initialize session state variables if not already set
