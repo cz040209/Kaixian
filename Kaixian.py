@@ -140,42 +140,68 @@ def logout():
     st.sidebar.info("Logged out")
     st.rerun()
 
-def show_login_register():
-    st.subheader("Login / Register")
+def show_login():
+    st.subheader("Login")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Login"):
-            login(username, password)
-    with col2:
-        if st.button("Register"):
-            register(username, password)
+    if st.button("Login"):
+        login(username, password)
+    st.markdown("---")
+    st.subheader("Don't have an account?")
+    if st.button("Register Account"):
+        st.session_state["page"] = "Register"
+        st.rerun()
+
+def show_register():
+    st.subheader("Register")
+    new_username = st.text_input("New Username")
+    new_password = st.text_input("New Password", type="password")
+    if st.button("Register"):
+        register(new_username, new_password)
+        st.session_state["page"] = "Login"
+        st.rerun()
+    st.markdown("---")
+    if st.button("Back to Login"):
+        st.session_state["page"] = "Login"
+        st.rerun()
+
+# Initialize page state
+if "page" not in st.session_state:
+    st.session_state["page"] = "Login"
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Chat", "Login / Register"])
+page = st.sidebar.radio("Go to", ["Chat", "Login", "Register"])
 
-if page == "Login / Register":
-    show_login_register()
+if page == "Login":
+    st.session_state["page"] = "Login"
+elif page == "Register":
+    st.session_state["page"] = "Register"
 elif page == "Chat":
-    # Apply background and call buttons only on the Chat page
-    set_background(background_image_url)
+    st.session_state["page"] = "Chat"
 
-    # Create a container for the call icons at the bottom
-    call_icon_container = st.container()
-    with call_icon_container:
-        st.markdown("""
-            <div class="fixed-bottom-icons">
-                <button data-testid="stButton" key="call_button_voice" title="Initiate a Voice Call">📞</button>
-                <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # Emøtica Title
-    st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
-
+if st.session_state["page"] == "Login":
+    show_login()
+elif st.session_state["page"] == "Register":
+    show_register()
+elif st.session_state["page"] == "Chat":
     if st.session_state["authentication_status"]:
+        # Apply background and call buttons only on the Chat page
+        set_background(background_image_url)
+
+        # Create a container for the call icons at the bottom
+        call_icon_container = st.container()
+        with call_icon_container:
+            st.markdown("""
+                <div class="fixed-bottom-icons">
+                    <button data-testid="stButton" key="call_button_voice" title="Initiate a Voice Call">📞</button>
+                    <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+        # Emøtica Title
+        st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
+
         # Set up API Key directly
         api_key = "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"
 
