@@ -97,6 +97,14 @@ st.markdown("""
             color: white;
             cursor: pointer;
         }
+        /* Specific color for the voice call button */
+        .fixed-bottom-icons button[data-testid="stButton"][key="call_button_voice"] {
+            background-color: #007bff; /* Example blue color */
+        }
+        /* Specific color for the video call button */
+        .fixed-bottom-icons button[data-testid="stButton"][key="call_button_video"] {
+            background-color: #28a745; /* Example green color */
+        }
     </style>
 """, unsafe_allow_html=True)
 
