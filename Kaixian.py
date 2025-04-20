@@ -2,7 +2,6 @@
 from streamlit_chat import message
 import requests
 import streamlit as st
-import PyPDF2
 from datetime import datetime
 from gtts import gTTS  # Import gtts for text-to-speech
 import os
@@ -13,7 +12,7 @@ from io import BytesIO
 import openai
 import pytz
 import time
-from rouge_score import rouge_scorer
+
 
 def set_background(image_url):
     st.markdown(
@@ -239,19 +238,6 @@ if user_input:
             # Display the response time
             st.write(f"Response Time: {response_time:.2f} seconds")
 
-            # Optionally calculate ROUGE scores (if applicable)
-            if 'generated_summary' in st.session_state:
-                reference_summary = st.session_state['generated_summary']
-
-                # Calculate ROUGE scores
-                scorer = rouge_scorer.RougeScorer(["rouge1", "rouge2", "rougeL"], use_stemmer=True)
-                scores = scorer.score(reference_summary, answer)
-                rouge1 = scores["rouge1"]
-                rouge2 = scores["rouge2"]
-                rougeL = scores["rougeL"]
-
-                # Display ROUGE scores
-                st.write(f"ROUGE-1: {rouge1.fmeasure:.4f}, ROUGE-2: {rouge2.fmeasure:.4f}, ROUGE-L: {rougeL.fmeasure:.4f}")
         else:
             st.chat_message("assistant").write(f"Error {response.status_code}: {response.text}")
     except requests.exceptions.RequestException as e:
@@ -398,18 +384,6 @@ def ask_question(question):
                     # Display the answer along with the response time
                     st.write(f"Answer: {answer}")
                     st.write(f"Question Response Time: {response_time:.2f} seconds")
-
-                    # Compute ROUGE scores for the Q&A after summarization
-                    if 'generated_summary' in st.session_state:
-                        reference_summary = st.session_state['generated_summary']
-                        scorer = rouge_scorer.RougeScorer(["rouge1", "rouge2", "rougeL"], use_stemmer=True)
-                        scores = scorer.score(reference_summary, answer)
-                        rouge1 = scores["rouge1"]
-                        rouge2 = scores["rouge2"]
-                        rougeL = scores["rougeL"]
-
-                        # Display ROUGE scores for the question-answering process
-                        st.write(f"ROUGE-1: {rouge1.fmeasure:.4f}, ROUGE-2: {rouge2.fmeasure:.4f}, ROUGE-L: {rougeL.fmeasure:.4f}")
 
                     # Update content with the latest answer
                     st.session_state['content'] += f"\n{question}: {answer}"
