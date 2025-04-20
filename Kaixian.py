@@ -113,24 +113,18 @@ available_models = {
 # Custom CSS to style the chat input and button
 st.markdown("""
     <style>
-        /* ... other styles ... */
-        button[data-testid="stButton"][key^="call_button"] {
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 !important;
-            font-size: 20px;
-            margin: 0 5px;
+    /* CSS for the fixed bottom icons */
+        button[data-testid="stButton"][key="call_button_voice"] {
+            position: fixed !important;
+            bottom: 20px !important;
+            left: 30px !important;
+            z-index: 1001 !important;
         }
-        button[data-testid="stButton"][key^="call_button"] > div {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
+        button[data-testid="stButton"][key="call_button_video"] {
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 30px !important;
+            z-index: 1001 !important;
         }
     </style>
 """, unsafe_allow_html=True)
