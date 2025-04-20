@@ -178,17 +178,16 @@ for interaction in st.session_state.history:
 # Initialize user_input outside the container
 user_input = None
 
-# Create a container for the call icons at the bottom (AFTER the selectbox)
-call_icon_container = st.container()  # Move this line up
+# Main content area
+with st.container():
 
-with call_icon_container:
-    col1, col2 = st.columns([1, 1]) # Adjust ratios as needed
-    with col1:
-        if st.button(':telephone_receiver:', key="call_button_voice", help="Initiate a Voice Call"):
-            user_input = "Initiate a Voice Call"
-    with col2:
-        if st.button(':movie_camera:', key="call_button_video", help="Initiate a Video Call"):
-            user_input = "Initiate a Video Call"
+# Fixed bottom bar for call buttons
+st.markdown(f"""
+    <div class="fixed-bottom">
+        <button data-testid="stButton" key="call_button_voice" title="Initiate a Voice Call">📞</button>
+        <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
+    </div>
+""", unsafe_allow_html=True)
 
 if user_input:
     # Set the timezone to Malaysia for the timestamp
