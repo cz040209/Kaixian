@@ -185,6 +185,15 @@ for interaction in st.session_state.history:
     st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
     st.chat_message("assistant").write(interaction["response"] or "Thinking...")
 
+    
+# Get user input based on button clicks
+user_input = None
+if voice_call_button:
+    user_input = "Initiate a voice call."  # You can customize this message
+elif video_call_button:
+    user_input = "Initiate a video call."  # You can customize this message
+else:
+    user_input = st.chat_input("Ask me anything:")
             
 if user_input:
     # Set the timezone to Malaysia for the timestamp
