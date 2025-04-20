@@ -107,6 +107,21 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Create a container for the call icons at the bottom
+call_icon_container = st.container()
+
+with call_icon_container:
+    st.markdown("""
+        <div class="fixed-bottom-icons">
+            <button data-testid="stButton" key="call_button_voice" title="Initiate a Voice Call">📞</button>
+            <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
+        </div>
+    """, unsafe_allow_html=True)
+
+
+# Emøtica Title
+st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
+
 # Initialize session state for authentication
 if "authentication_status" not in st.session_state:
     st.session_state["authentication_status"] = None
@@ -139,70 +154,27 @@ def logout():
     st.session_state["authentication_status"] = False
     st.session_state["username"] = None
     st.sidebar.info("Logged out")
-    st.rerun()
 
-def show_login():
-    st.subheader("Login")
+def show_login_register():
+    st.subheader("Login / Register")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
-    if st.button("Login"):
-        login(username, password)
-    st.markdown("---")
-    st.subheader("Don't have an account?")
-    if st.button("Register Account"):
-        st.session_state["page"] = "Register"
-        st.rerun()
-
-def show_register():
-    st.subheader("Register")
-    new_username = st.text_input("New Username")
-    new_password = st.text_input("New Password", type="password")
-    if st.button("Register"):
-        register(new_username, new_password)
-        st.session_state["page"] = "Login"
-        st.rerun()
-    st.markdown("---")
-    if st.button("Back to Login"):
-        st.session_state["page"] = "Login"
-        st.rerun()
-
-# Initialize page state
-if "page" not in st.session_state:
-    st.session_state["page"] = "Login"
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Login"):
+            login(username, password)
+    with col2:
+        if st.button("Register"):
+            register(username, password)
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Chat", "Login", "Register"])
+page = st.sidebar.radio("Go to", ["Chat", "Login / Register"])
 
-if page == "Login":
-    st.session_state["page"] = "Login"
-elif page == "Register":
-    st.session_state["page"] = "Register"
+if page == "Login / Register":
+    show_login_register()
 elif page == "Chat":
-    st.session_state["page"] = "Chat"
-
-if st.session_state["page"] == "Login":
-    show_login()
-elif st.session_state["page"] == "Register":
-    show_register()
-elif st.session_state["page"] == "Chat":
     if st.session_state["authentication_status"]:
-        # Apply background and call buttons only on the Chat page
-        set_background(background_image_url)
-
-        # Create a container for the call icons at the bottom
-        call_icon_container = st.container()
-        with call_icon_container:
-            st.markdown("""
-                <div class="fixed-bottom-icons">
-                    <button data-testid="stButton" key="call_button_voice" title="Initiate a Voice Call">📞</button>
-                    <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
-                </div>
-            """, unsafe_allow_html=True)
-
-        # Emøtica Title
-        st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
-
         # Set up API Key directly
         api_key = "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"
 
@@ -344,109 +316,12 @@ elif st.session_state["page"] == "Chat":
                 st.chat_message("assistant").write(f"An error occurred: {e}")
 
 
-        # Sidebar for interaction history
-        if "history" not in st.session_state:
-            st.session_state.history = []
+# Sidebar for interaction history
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-        # Initialize content variable
-        content = ""
-
-
-
-        # Sidebar for interaction history (should come early)
-        if "history" not in st.session_state:
-            st.session_state.history = []
-        content = ""
-
-        # Display conversation history
-        for interaction in st.session_state.history:
-            st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
-            st.chat_message("assistant").write(interaction["response"] or "Thinking...")
-
-        # Get user input based on button clicks
-        user_input = None
-        if st.session_state.get("call_button_voice"):
-            user_input = "Initiate a voice call."  # You can customize this message
-        elif st.session_state.get("call_button_video"):
-            user_input = "Initiate a video call."  # You can customize this message
-
-        if user_input:
-            # Set the timezone to Malaysia for the timestamp
-            malaysia_tz = pytz.timezone("Asia/Kuala_Lumpur")
-            current_time = datetime.now(malaysia_tz).strftime("%Y-%m-%d %H:%M:%S")
-
-            # Prepare the interaction data for history tracking
-            interaction = {
-                "time": current_time,
-                "input_method": "call_button",
-                "question": user_input,
-                "response": "",
-                "content_preview": content[:100] if content else "No content available"
-            }
-
-            # Add the user question to the history
-            st.session_state.history.append(interaction)
-
-            # Display the user's input immediately
-            st.chat_message("user").write(user_input)
-
-            # Display "Thinking..." for assistant response
-            st.chat_message("assistant").write("Thinking...")
-
-            # Track start time for response calculation
-            start_time = time.time()
-
-            # Prepare the data for API call
-            messages = [
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": user_input}
-            ]
-            if content:
-                messages.insert(1, {"role": "system", "content": f"Use the following content: {content}"})
-
-            data = {
-                "model": selected_model_id,
-                "messages": messages,
-                "temperature": 0.7,
-                "max_tokens": 200,
-                "top_p": 0.9
-            }
-
-            try:
-                # Send the request to the API
-                response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data)
-
-                # Track end time for response calculation
-                end_time = time.time()
-                response_time = end_time - start_time
-
-                if response.status_code == 200:
-                    result = response.json()
-                    answer = result['choices'][0]['message']['content']
-
-                    # Update the latest interaction with the model's response
-                    st.session_state.history[-1]["response"] = answer
-
-                    # Display the assistant's response
-                    st.chat_message("assistant").write(answer)
-
-                    # Display the response time
-                    st.write(f"Response Time: {response_time:.2f} seconds")
-
-                else:
-                    st.chat_message("assistant").write(f"Error {response.status_code}: {response.text}")
-            except requests.exceptions.RequestException as e:
-                st.chat_message("assistant").write(f"An error occurred: {e}")
-
-
-        # Sidebar for interaction history
-        if "history" not in st.session_state:
-            st.session_state.history = []
-
-        # Initialize content variable
-        content = ""
-
-
+# Initialize content variable
+content = ""
 
 
 
