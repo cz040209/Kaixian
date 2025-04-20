@@ -113,6 +113,7 @@ available_models = {
 # Custom CSS to style the chat input and button
 st.markdown("""
     <style>
+        /* ... other styles ... */
         button[data-testid="stButton"][key^="call_button"] {
             border-radius: 50%;
             width: 60px;
