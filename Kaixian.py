@@ -78,14 +78,36 @@ st.markdown("""
         button[data-testid="stButton"][key="call_button_voice"] {
             position: fixed !important;
             bottom: 20px !important; /* Adjust vertical position */
-            left: 30px !important;   /* Adjust horizontal position for voice icon */
+            left: 30px !important;    /* Adjust horizontal position for voice icon */
             z-index: 1001 !important;
+            border-radius: 50%; /* Make the button circular */
+            width: 50px; /* Set a width */
+            height: 50px; /* Set a height equal to the width */
+            display: flex; /* Enable flexbox for centering */
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
+            font-size: 20px; /* Adjust icon size */
+            border: none; /* Remove default button border */
+            background-color: #61dafb; /* Match the button color */
+            color: white;
+            cursor: pointer;
         }
         button[data-testid="stButton"][key="call_button_video"] {
             position: fixed !important;
             bottom: 20px !important; /* Adjust vertical position */
-            right: 30px !important;  /* Adjust horizontal position for video icon */
+            right: 30px !important;   /* Adjust horizontal position for video icon */
             z-index: 1001 !important;
+            border-radius: 50%; /* Make the button circular */
+            width: 50px; /* Set a width */
+            height: 50px; /* Set a height equal to the width */
+            display: flex; /* Enable flexbox for centering */
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
+            font-size: 20px; /* Adjust icon size */
+            border: none; /* Remove default button border */
+            background-color: #61dafb; /* Match the button color */
+            color: white;
+            cursor: pointer;
         }
     </style>
 """, unsafe_allow_html=True)
