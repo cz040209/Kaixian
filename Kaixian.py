@@ -76,7 +76,7 @@ st.markdown("""
         /* CSS for the fixed bottom icons */
         .fixed-bottom-icons {
             position: fixed !important;
-            bottom: 20px !important;
+            bottom: 80px !important; /* Increased bottom value */
             left: 50% !important;
             transform: translateX(-50%) !important;
             z-index: 1001 !important;
@@ -117,7 +117,7 @@ with call_icon_container:
             <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
         </div>
     """, unsafe_allow_html=True)
-
+    
 
 # Emøtica Title
 st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
