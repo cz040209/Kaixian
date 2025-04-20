@@ -191,6 +191,18 @@ elif page == "Register":
     register_page()
 elif page == "Chat":
     set_background(background_image_url)
+    # Initialize session state variables at the beginning of the Chat page logic
+    if "history" not in st.session_state:
+        st.session_state.history = []
+    if "past_conversations" not in st.session_state:
+        st.session_state.past_conversations = []
+    if "current_conversation_index" not in st.session_state:
+        st.session_state.current_conversation_index = -1  # -1 indicates no specific past conversation is active
+    if 'content' not in st.session_state:
+        st.session_state['content'] = ''
+    if 'generated_summary' not in st.session_state:
+        st.session_state['generated_summary'] = ''
+
     # Create a container for the call icons at the bottom only on the Chat page
     call_icon_container = st.container()
     with call_icon_container:
@@ -202,18 +214,6 @@ elif page == "Chat":
         """, unsafe_allow_html=True)
 
     if st.session_state["authentication_status"]:
-        # Initialize session state variables if not already set
-        if "history" not in st.session_state:
-            st.session_state.history = []
-        if "past_conversations" not in st.session_state:
-            st.session_state.past_conversations = []
-        if "current_conversation_index" not in st.session_state:
-            st.session_state.current_conversation_index = -1  # -1 indicates no specific past conversation is active
-        if 'content' not in st.session_state:
-            st.session_state['content'] = ''
-        if 'generated_summary' not in st.session_state:
-            st.session_state['generated_summary'] = ''
-
         # Set up API Key directly
         api_key = "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"
 
