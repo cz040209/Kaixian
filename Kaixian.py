@@ -155,24 +155,33 @@ def logout():
     st.session_state["username"] = None
     st.sidebar.info("Logged out")
 
-def show_login_register():
-    st.subheader("Login / Register")
+def login_page():
+    st.subheader("Login")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Login"):
-            login(username, password)
-    with col2:
-        if st.button("Register"):
+    if st.button("Login"):
+        login(username, password)
+    st.markdown("Don't have an account? [Register here](register)")
+
+def register_page():
+    st.subheader("Register")
+    username = st.text_input("New Username")
+    password = st.text_input("New Password", type="password")
+    password_confirm = st.text_input("Confirm Password", type="password")
+    if st.button("Register"):
+        if password == password_confirm:
             register(username, password)
+        else:
+            st.error("Passwords do not match")
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Chat", "Login / Register"])
+page = st.sidebar.radio("Go to", ["Chat", "Login", "Register"])
 
-if page == "Login / Register":
-    show_login_register()
+if page == "Login":
+    login_page()
+elif page == "Register":
+    register_page()
 elif page == "Chat":
     if st.session_state["authentication_status"]:
         # Set up API Key directly
@@ -316,113 +325,113 @@ elif page == "Chat":
                 st.chat_message("assistant").write(f"An error occurred: {e}")
 
 
-# Sidebar for interaction history
-if "history" not in st.session_state:
-    st.session_state.history = []
+        # Sidebar for interaction history
+        if "history" not in st.session_state:
+            st.session_state.history = []
 
-# Initialize content variable
-content = ""
-
-
-
-# Sidebar for interaction history (should come early)
-if "history" not in st.session_state:
-    st.session_state.history = []
-content = ""
-
-# Display conversation history
-for interaction in st.session_state.history:
-    st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
-    st.chat_message("assistant").write(interaction["response"] or "Thinking...")
-
-# Get user input based on button clicks
-user_input = None
-if st.session_state.get("call_button_voice"):
-    user_input = "Initiate a voice call."  # You can customize this message
-elif st.session_state.get("call_button_video"):
-    user_input = "Initiate a video call."  # You can customize this message
-            
-if user_input:
-    # Set the timezone to Malaysia for the timestamp
-    malaysia_tz = pytz.timezone("Asia/Kuala_Lumpur")
-    current_time = datetime.now(malaysia_tz).strftime("%Y-%m-%d %H:%M:%S")
-
-    # Prepare the interaction data for history tracking
-    interaction = {
-        "time": current_time,
-        "input_method": "call_button",
-        "question": user_input,
-        "response": "",
-        "content_preview": content[:100] if content else "No content available"
-    }
-
-    # Add the user question to the history
-    st.session_state.history.append(interaction)
-
-    # Display the user's input immediately
-    st.chat_message("user").write(user_input)
-
-    # Display "Thinking..." for assistant response
-    st.chat_message("assistant").write("Thinking...")
-
-    # Track start time for response calculation
-    start_time = time.time()
-
-    # Prepare the data for API call
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": user_input}
-    ]
-    if content:
-        messages.insert(1, {"role": "system", "content": f"Use the following content: {content}"})
-
-    data = {
-        "model": selected_model_id,
-        "messages": messages,
-        "temperature": 0.7,
-        "max_tokens": 200,
-        "top_p": 0.9
-    }
-
-    try:
-        # Send the request to the API
-        response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data)
-
-        # Track end time for response calculation
-        end_time = time.time()
-        response_time = end_time - start_time
-
-        if response.status_code == 200:
-            result = response.json()
-            answer = result['choices'][0]['message']['content']
-
-            # Update the latest interaction with the model's response
-            st.session_state.history[-1]["response"] = answer
-
-            # Display the assistant's response
-            st.chat_message("assistant").write(answer)
-
-            # Display the response time
-            st.write(f"Response Time: {response_time:.2f} seconds")
-
-        else:
-            st.chat_message("assistant").write(f"Error {response.status_code}: {response.text}")
-    except requests.exceptions.RequestException as e:
-        st.chat_message("assistant").write(f"An error occurred: {e}")
+        # Initialize content variable
+        content = ""
 
 
-# Initialize session state variables if not already set
-if "history" not in st.session_state:
-    st.session_state.history = []
 
-if "past_conversations" not in st.session_state:
-    st.session_state.past_conversations = []
+        # Sidebar for interaction history (should come early)
+        if "history" not in st.session_state:
+            st.session_state.history = []
+        content = ""
 
-if "current_conversation_index" not in st.session_state:
-    st.session_state.current_conversation_index = -1  # -1 indicates no specific past conversation is active
+        # Display conversation history
+        for interaction in st.session_state.history:
+            st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
+            st.chat_message("assistant").write(interaction["response"] or "Thinking...")
 
-# Display the interaction history in the sidebar with clickable expanders
-st.sidebar.header("Interaction History")
+        # Get user input based on button clicks
+        user_input = None
+        if st.session_state.get("call_button_voice"):
+            user_input = "Initiate a voice call."  # You can customize this message
+        elif st.session_state.get("call_button_video"):
+            user_input = "Initiate a video call."  # You can customize this message
+
+        if user_input:
+            # Set the timezone to Malaysia for the timestamp
+            malaysia_tz = pytz.timezone("Asia/Kuala_Lumpur")
+            current_time = datetime.now(malaysia_tz).strftime("%Y-%m-%d %H:%M:%S")
+
+            # Prepare the interaction data for history tracking
+            interaction = {
+                "time": current_time,
+                "input_method": "call_button",
+                "question": user_input,
+                "response": "",
+                "content_preview": content[:100] if content else "No content available"
+            }
+
+            # Add the user question to the history
+            st.session_state.history.append(interaction)
+
+            # Display the user's input immediately
+            st.chat_message("user").write(user_input)
+
+            # Display "Thinking..." for assistant response
+            st.chat_message("assistant").write("Thinking...")
+
+            # Track start time for response calculation
+            start_time = time.time()
+
+            # Prepare the data for API call
+            messages = [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": user_input}
+            ]
+            if content:
+                messages.insert(1, {"role": "system", "content": f"Use the following content: {content}"})
+
+            data = {
+                "model": selected_model_id,
+                "messages": messages,
+                "temperature": 0.7,
+                "max_tokens": 200,
+                "top_p": 0.9
+            }
+
+            try:
+                # Send the request to the API
+                response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data)
+
+                # Track end time for response calculation
+                end_time = time.time()
+                response_time = end_time - start_time
+
+                if response.status_code == 200:
+                    result = response.json()
+                    answer = result['choices'][0]['message']['content']
+
+                    # Update the latest interaction with the model's response
+                    st.session_state.history[-1]["response"] = answer
+
+                    # Display the assistant's response
+                    st.chat_message("assistant").write(answer)
+
+                    # Display the response time
+                    st.write(f"Response Time: {response_time:.2f} seconds")
+
+                else:
+                    st.chat_message("assistant").write(f"Error {response.status_code}: {response.text}")
+            except requests.exceptions.RequestException as e:
+                st.chat_message("assistant").write(f"An error occurred: {e}")
+
+
+        # Initialize session state variables if not already set
+        if "history" not in st.session_state:
+            st.session_state.history = []
+
+        if "past_conversations" not in st.session_state:
+            st.session_state.past_conversations = []
+
+        if "current_conversation_index" not in st.session_state:
+            st.session_state.current_conversation_index = -1  # -1 indicates no specific past conversation is active
+
+        # Display the interaction history in the sidebar with clickable expanders
+        st.sidebar.header("Interaction History")
 
 # Add the "Clear History" button to clear all past conversations
 if st.sidebar.button("Clear History"):
