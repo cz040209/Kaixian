@@ -66,7 +66,7 @@ st.markdown("""
             margin-top: 50px;
             margin-bottom: 30px;
             position: fixed; /* Make the title fixed */
-            top: 10px;      /* Adjust the top position as needed */
+            top: 50px;      /* Adjust the top position as needed */
             left: 50%;     /* Center horizontally */
             transform: translateX(-50%); /* Adjust for centering */
             width: 100%;    /* Ensure it spans the width */
