@@ -25,7 +25,7 @@ def set_background(image_url):
         unsafe_allow_html=True
     )
 
-background_image_url = "https://e3.365dm.com/23/06/1600x900/skynews-ai-artificial-intelligence_6181817.jpg?20230608152148"
+background_image_url = "https://i.pinimg.com/originals/6b/a1/74/6ba174bf48e9b6dc8d8bd19d13c9caa9.gif"
 set_background(background_image_url)
 
 st.markdown("""
