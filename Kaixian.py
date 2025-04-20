@@ -29,11 +29,11 @@ def set_background(image_url):
 background_image_url = "https://murf.ai/resources/media/posts/90/ai-with-voice-new.png"
 set_background(background_image_url)
 
-# Custom CSS for a more premium look
 st.markdown("""
     <style>
+        /* Existing CSS */
         .css-1d391kg {
-            background-color: #1c1f24;  /* Dark background */
+            background-color: #1c1f24;
             color: white;
             font-family: 'Arial', sans-serif;
         }
@@ -65,14 +65,27 @@ st.markdown("""
             text-align: center;
             margin-top: 50px;
             margin-bottom: 30px;
-            position: fixed; /* Make the title fixed */
-            top: 60px;      /* Adjust the top position as needed */
-            left: 50%;     /* Center horizontally */
-            transform: translateX(-50%); /* Adjust for centering */
-            width: 100%;    /* Ensure it spans the width */
-            z-index: 1000;  /* Ensure it's on top of other elements */
-            background-color: rgba(28, 31, 36, 0.8); /* Optional: Add a slightly transparent background */
-            padding: 10px 0; /* Optional: Add some padding */
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            z-index: 1000;
+            background-color: rgba(28, 31, 36, 0.8);
+            padding: 10px 0;
+        }
+        /* CSS for the fixed bottom icons */
+        button[data-testid="stButton"][key="call_button_voice"] {
+            position: fixed !important;
+            bottom: 20px !important; /* Adjust vertical position */
+            left: 30px !important;   /* Adjust horizontal position for voice icon */
+            z-index: 1001 !important;
+        }
+        button[data-testid="stButton"][key="call_button_video"] {
+            position: fixed !important;
+            bottom: 20px !important; /* Adjust vertical position */
+            right: 30px !important;  /* Adjust horizontal position for video icon */
+            z-index: 1001 !important;
         }
     </style>
 """, unsafe_allow_html=True)
