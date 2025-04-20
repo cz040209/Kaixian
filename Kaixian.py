@@ -140,25 +140,6 @@ available_models = {
     "gemma2-9b-it": "gemma2-9b-it",
 }
 
-# Custom CSS to style the chat input and button
-st.markdown("""
-    <style>
-    /* CSS for the fixed bottom icons */
-        button[data-testid="stButton"][key="call_button_voice"] {
-            position: fixed !important;
-            bottom: 20px !important;
-            left: 30px !important;
-            z-index: 1001 !important;
-        }
-        button[data-testid="stButton"][key="call_button_video"] {
-            position: fixed !important;
-            bottom: 20px !important;
-            right: 30px !important;
-            z-index: 1001 !important;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
 
 # Function to Translate Text Using the Selected Model
 def translate_text(text, target_language, model_id):
