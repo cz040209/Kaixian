@@ -111,11 +111,12 @@ st.markdown("""
 call_icon_container = st.container()
 
 with call_icon_container:
-    col1, col2 = st.columns(2)
-    with col1:
-        voice_call_button = st.button("📞", key="call_button_voice", help="Initiate a Voice Call")
-    with col2:
-        video_call_button = st.button("📹", key="call_button_video", help="Initiate a Video Call")
+    st.markdown("""
+        <div class="fixed-bottom-icons">
+            <button data-testid="stButton" key="call_button_voice" title="Initiate a Voice Call">📞</button>
+            <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">📹</button>
+        </div>
+    """, unsafe_allow_html=True)
 
 
 # Emøtica Title
@@ -183,15 +184,12 @@ for interaction in st.session_state.history:
     st.chat_message("user").write(f"[{interaction['time']}] {interaction['question']}")
     st.chat_message("assistant").write(interaction["response"] or "Thinking...")
 
-    
 # Get user input based on button clicks
 user_input = None
-if voice_call_button:
+if st.session_state.get("call_button_voice"):
     user_input = "Initiate a voice call."  # You can customize this message
-elif video_call_button:
+elif st.session_state.get("call_button_video"):
     user_input = "Initiate a video call."  # You can customize this message
-else:
-    user_input = st.chat_input("Ask me anything:")
             
 if user_input:
     # Set the timezone to Malaysia for the timestamp
