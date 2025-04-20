@@ -178,6 +178,9 @@ for interaction in st.session_state.history:
 # Initialize user_input outside the container
 user_input = None
 
+# Create a container for the call icons at the bottom (BEFORE you use it)
+call_icon_container = st.container()
+
 with call_icon_container:
     col1, col2 = st.columns([1, 1]) # Adjust ratios as needed
     with col1:
