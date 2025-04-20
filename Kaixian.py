@@ -75,42 +75,41 @@ st.markdown("""
             padding: 10px 0;
         }
         /* CSS for the fixed bottom icons */
-        button[data-testid="stButton"][key="call_button_voice"] {
+        .fixed-bottom-icons {
             position: fixed !important;
-            bottom: 20px !important; /* Adjust vertical position */
-            left: 30px !important;    /* Adjust horizontal position for voice icon */
+            bottom: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
             z-index: 1001 !important;
-            border-radius: 50%; /* Make the button circular */
-            width: 50px; /* Set a width */
-            height: 50px; /* Set a height equal to the width */
-            display: flex; /* Enable flexbox for centering */
-            justify-content: center; /* Center content horizontally */
-            align-items: center; /* Center content vertically */
-            font-size: 20px; /* Adjust icon size */
-            border: none; /* Remove default button border */
-            background-color: #61dafb; /* Match the button color */
-            color: white;
-            cursor: pointer;
+            display: flex !important;
+            gap: 20px !important; /* Adjust spacing between icons */
         }
-        button[data-testid="stButton"][key="call_button_video"] {
-            position: fixed !important;
-            bottom: 20px !important; /* Adjust vertical position */
-            right: 30px !important;   /* Adjust horizontal position for video icon */
-            z-index: 1001 !important;
-            border-radius: 50%; /* Make the button circular */
-            width: 50px; /* Set a width */
-            height: 50px; /* Set a height equal to the width */
-            display: flex; /* Enable flexbox for centering */
-            justify-content: center; /* Center content horizontally */
-            align-items: center; /* Center content vertically */
-            font-size: 20px; /* Adjust icon size */
-            border: none; /* Remove default button border */
-            background-color: #61dafb; /* Match the button color */
+        .fixed-bottom-icons button[data-testid="stButton"] {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            border: none;
+            background-color: #61dafb;
             color: white;
             cursor: pointer;
         }
     </style>
 """, unsafe_allow_html=True)
+
+# Create a container for the call icons at the bottom
+call_icon_container = st.container()
+
+with call_icon_container:
+    st.markdown("""
+        <div class="fixed-bottom-icons">
+            <button data-testid="stButton" key="call_button_voice" title="Initiate a Voice Call">📞</button>
+            <button data-testid="stButton" key="call_button_video" title="Initiate a Video Call">🎬</button>
+        </div>
+    """, unsafe_allow_html=True)
 
 # Emøtica Title
 st.markdown('<h1 class="Emøtica-title">Emøtica</h1>', unsafe_allow_html=True)
